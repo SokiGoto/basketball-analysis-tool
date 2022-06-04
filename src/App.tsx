@@ -1,26 +1,71 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import { LoginInfo } from "./interfaces";
+import MainPage from "./pages/MainPage";
+import NotFound from "./pages/NotFound";
+import LoginPage from "./pages/LoginPage";
+import SignupPage from "./pages/SignupPage";
+import PassResetPage from "./pages/PassResetPage";
+import ToolPage from "./pages/ToolPage";
+import MyPage from "./pages/MyPage";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import { auth } from "./Firebase";
 import './App.css';
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+	const [loginInfo, setLoginInfo] = useState<LoginInfo>({
+		state: "signout",
+		userid: "",
+		email: "",
+	});
+	
+	useEffect(() => {
+		auth.onAuthStateChanged((user) => {
+			if (user) {
+				setLoginInfo({
+					state: "signin",
+					userid: user?.uid || "",
+					email: user?.email || "",
+				});
+			} else {
+				setLoginInfo({ state: "signout", userid: "", email: "" });
+			}
+		});
+	}, []);
+
+
+	return (
+		<Router>
+			<div className="page-content">
+				<Header loginInfo={loginInfo}/>
+				<Switch>
+					<Route exact path="/">
+						<MainPage/>
+					</Route>
+					<Route path="/signup">
+						<SignupPage logininfo={loginInfo}/>
+					</Route>
+					<Route path="/mypage">
+						<MyPage logininfo={loginInfo}/>
+					</Route>
+					<Route path="/tool">
+						<ToolPage logininfo={loginInfo}/>
+					</Route>
+					<Route path="/login">
+						<LoginPage logininfo={loginInfo}/>
+					</Route>
+					<Route path="/passreset">
+						<PassResetPage />
+					</Route>
+					<Route>
+						<NotFound/>
+					</Route>
+				</Switch>
+				<Footer />
+			</div>
+		</Router>
+	);
 }
 
 export default App;
