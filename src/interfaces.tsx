@@ -7,7 +7,8 @@ export type LoginInfo = {
 };
 
 export type Point = {
-    coor: number[][];
+    coor_x: number;
+    coor_y: number;
     color: string;
     point: number;
 };
@@ -34,11 +35,16 @@ export type Parameter = {
 }
 
 export type Quarter = {
-    point: Point;
+    point: Point[];
     parameter: Parameter;
 }
 
 export type Game = {
+    year: number;
+    month: number;
+    day: number;
+    team_A: string;
+    team_B: string;
     Q1: Quarter;
     Q2: Quarter;
     Q3: Quarter;
@@ -46,7 +52,8 @@ export type Game = {
 }
 
 export const InitialPoint: Point = {
-    coor: [[]],
+    coor_x: 0,
+    coor_y: 0,
     color: "",
     point: 2
 }
@@ -73,11 +80,16 @@ export const InitialParameter = {
 }
 
 export const InitialQuarter: Quarter = {
-    point: InitialPoint,
+    point: [],
     parameter: InitialParameter
 }
 
-const InitialGame: Game = {
+export const InitialGame: Game = {
+    year: 1990,
+    month: 1,
+    day: 1,
+    team_A: "A",
+    team_B: "B",
     Q1: InitialQuarter,
     Q2: InitialQuarter,
     Q3: InitialQuarter,

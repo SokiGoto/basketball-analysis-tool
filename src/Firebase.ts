@@ -60,5 +60,5 @@ if (process.env.REACT_APP_FIREBASE_STORAGE_EMULATOR_HOST !== undefined) {
 const analytics = getAnalytics(app);
 
 export const auth = getAuth();
-export const db = getFirestore();
+export const db = getFirestore(app);
 export const storage = getStorage();

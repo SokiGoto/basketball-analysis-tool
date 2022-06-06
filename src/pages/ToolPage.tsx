@@ -2,14 +2,18 @@ import React, { useState, useEffect} from "react";
 //import { Box, Grid } from "@mui/material";
 import Container from "react-bootstrap/Container";
 import Table from "react-bootstrap/Table";
+import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+import Tab from "react-bootstrap/Tab";
+import Tabs from "react-bootstrap/Tabs";
 import { Button, ButtonToolbar } from "react-bootstrap";
 import { Link , useHistory } from "react-router-dom";
 import { updatePassword } from "firebase/auth";
 
-import { LoginInfo, Point } from "../interfaces";
-import { auth } from "../Firebase";
+import { LoginInfo, Point, Game } from "../interfaces";
+import { auth, db } from "../Firebase";
+import { collection, getDocs } from "firebase/firestore"
 
 interface Props {
     logininfo: LoginInfo;
@@ -32,6 +36,11 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
 	const history = useHistory();
 	const [newPassword, setNewPassword] = useState("");
 	const [newPasswordConfirmation, setNewPasswordConfirmation] = useState("");
+    // const [Edit, setEdit] = useState(true);
+    
+    const [teamA, setTeamA] = useState("");
+    const [teamB, setTeamB] = useState("");
+
     
     const [Point, setPoint] = useState<any[][]>([]);
     const [GoalorNot, setGoalorNot] = useState("Goal");
@@ -41,7 +50,6 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
 
     const [FGPA, setFGPA] = useState(0);
     const [FGPB, setFGPB] = useState(0);
-
     const [FGMA, setFGMA] = useState(0);
     const [FGMB, setFGMB] = useState(0);
     const [FG2MA, setFG2MA] = useState(0);
@@ -54,12 +62,10 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
     const [FG2AB, setFG2AB] = useState(0);
     const [FG3AA, setFG3AA] = useState(0);
     const [FG3AB, setFG3AB] = useState(0);
-
     const [FTMA, setFTMA] = useState(0);
     const [FTAA, setFTAA] = useState(0);
     const [FTMB, setFTMB] = useState(0);
     const [FTAB, setFTAB] = useState(0);
-
     const [FOULA, setFOULA] = useState(0);
     const [FOULB, setFOULB] = useState(0);
     const [BSA, setBSA] = useState(0);
@@ -328,834 +334,879 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
 
     }
 
+
+
+    const Coat:React.VFC<{Edit: boolean}> = ({Edit}) => {
+        if (Edit){
+            return (
+                <svg id="coart" width="100%" height="100%" viewBox={`0 0 100 ${height}`} onClick={handleClick}>
+                    {/* harf coart
+                    <rect x="0.5" y="0" width="99" height="100" fill="#AB5239"/>
+                    <line x1="0.5" y1="0" x2="99.5" y2="0" stroke="#000" strokeWidth="0.5"/>
+                    <line x1="0.5" y1="0" x2="0.5" y2="99" stroke="#000" strokeWidth="0.5"/>
+                    <line x1="99.5" y1="0" x2="99.5" y2="99" stroke="#000" strokeWidth="0.5"/>
+                    <line x1="0.5" y1="93" x2="99.5" y2="93" stroke="#000" strokeWidth="0.5"/>
+                    <path d="M 93.5,0 L 93.5,20 A 45,45 0 0,1 6.5,20 L6.5,0z" fill="#AB5239" stroke="black" strokeWidth="0.5" />
+                    <circle cx="50" cy="93" r="12" fill="none" strokeWidth="0.5" stroke="#000"/>
+                    <rect x="33.7" y="0" width="32.7" height="38.7" stroke="black" strokeWidth="0.5" fill="none"/>
+                    <path d="M 50,38.75 L62,38.75 A 12,12 0 0,1 38,38.75z" fill="none"stroke="black" strokeWidth="0.5" />
+                    */}
+                    <rect x="0" y="0" width={width} height={height} fill="#AB5239"/>
+                    <line x1="0" y1="0" x2="0" y2={height} stroke="#000" strokeWidth="1"/>
+                    <line x1={width} y1="0" x2={width} y2={height} stroke="#000" strokeWidth="1"/>
+                    <line x1="0" y1="0" x2={width} y2="0" stroke="#000" strokeWidth="1"/>
+                    <line x1="0" y1={height} x2={width} y2={height} stroke="#000" strokeWidth="1"/>
+                    {/*center line and center circle*/}
+                    <line x1={width/2} y1="0" x2={width/2} y2={height} stroke="#000" strokeWidth="0.5"/>
+                    <circle cx={width/2} cy={height/2} r={circle} stroke="#000" strokeWidth="0.5" fill="none"/>
+                    
+                    {/*left coart*/}
+                    <rect
+                        x="0" y={(height - gbh)/2}
+                        width={gbw} height={gbh}
+                        stroke="#000" strokeWidth="0.5"
+                        fill="none" 
+                    />
+                    <path 
+                        d={`M${gbw},${height/2}
+                            L${gbw},${height/2-circle}
+                            A${circle},${circle} 0 0,1 
+                            ${gbw},${height/2 + circle}z`}
+                        fill="#AB5239"
+                        stroke="black"
+                        strokeWidth="0.5"
+                    />
+                    <path
+                        d={`M0,${tpls}
+                            L${tplsw},${tpls}
+                            A${tpl},${tpl} 0 0,1
+                            ${tplsw},${height-tpls}
+                            L0,${height-tpls}z`}
+                        fill="none"
+                        stroke="black"
+                        strokeWidth="0.5"
+                    />
+                    {/*right coart*/}
+                    <rect
+                        x={width - gbw} y={(height - gbh)/2}
+                        width={gbw} height={gbh}
+                        stroke="#000" strokeWidth="0.5"
+                        fill="none" 
+                    />
+                    <path 
+                        d={`M${width-gbw},${height/2}
+                            L${width-gbw},${height/2-circle}
+                            A${circle},${circle} 0 0,0 
+                            ${width-gbw},${height/2 + circle}z`}
+                        fill="#AB5239"
+                        stroke="black"
+                        strokeWidth="0.5"
+                    />
+                    <path
+                        d={`M${width},${tpls}
+                            L${width-tplsw},${tpls}
+                            A${tpl},${tpl} 0 0,0
+                            ${width-tplsw},${height-tpls}
+                            L${width},${height-tpls}z`}
+                        fill="none"
+                        stroke="black"
+                        strokeWidth="0.5"
+                    />
+
+                    {/*
+                    <path d="M 94,18 a 45 45 10 0 1 -88,0" fill="none" stroke="black"/>
+                    <path d="M 95,10 a 45 45 0 0 1 -90,0" fill="none" stroke="black"/>
+                    <path d=" M50,10.5 L90,0 A45,45 0 1,1 9,0z" fill="none" stroke="black" strokeWidth="0.5"/>
+                    <path d="M 6,0 L 6,20  A 45,45 0 0,1 90,20 z" stroke="black" strokeWidth="0.5"/>
+                    */}
+
+
+                    {Point.map((coor, index) => {
+                        return <circle cx={coor[0]} cy={coor[1]} r="1" fill={coor[2]} />
+                    })}
+                </svg>
+            )
+
+        } else {
+            return (
+                <svg id="coart" width="100%" height="100%" viewBox={`0 0 100 ${height}`}>
+                    {/* harf coart
+                    <rect x="0.5" y="0" width="99" height="100" fill="#AB5239"/>
+                    <line x1="0.5" y1="0" x2="99.5" y2="0" stroke="#000" strokeWidth="0.5"/>
+                    <line x1="0.5" y1="0" x2="0.5" y2="99" stroke="#000" strokeWidth="0.5"/>
+                    <line x1="99.5" y1="0" x2="99.5" y2="99" stroke="#000" strokeWidth="0.5"/>
+                    <line x1="0.5" y1="93" x2="99.5" y2="93" stroke="#000" strokeWidth="0.5"/>
+                    <path d="M 93.5,0 L 93.5,20 A 45,45 0 0,1 6.5,20 L6.5,0z" fill="#AB5239" stroke="black" strokeWidth="0.5" />
+                    <circle cx="50" cy="93" r="12" fill="none" strokeWidth="0.5" stroke="#000"/>
+                    <rect x="33.7" y="0" width="32.7" height="38.7" stroke="black" strokeWidth="0.5" fill="none"/>
+                    <path d="M 50,38.75 L62,38.75 A 12,12 0 0,1 38,38.75z" fill="none"stroke="black" strokeWidth="0.5" />
+                    */}
+                    <rect x="0" y="0" width={width} height={height} fill="#AB5239"/>
+                    <line x1="0" y1="0" x2="0" y2={height} stroke="#000" strokeWidth="1"/>
+                    <line x1={width} y1="0" x2={width} y2={height} stroke="#000" strokeWidth="1"/>
+                    <line x1="0" y1="0" x2={width} y2="0" stroke="#000" strokeWidth="1"/>
+                    <line x1="0" y1={height} x2={width} y2={height} stroke="#000" strokeWidth="1"/>
+                    {/*center line and center circle*/}
+                    <line x1={width/2} y1="0" x2={width/2} y2={height} stroke="#000" strokeWidth="0.5"/>
+                    <circle cx={width/2} cy={height/2} r={circle} stroke="#000" strokeWidth="0.5" fill="none"/>
+                    
+                    {/*left coart*/}
+                    <rect
+                        x="0" y={(height - gbh)/2}
+                        width={gbw} height={gbh}
+                        stroke="#000" strokeWidth="0.5"
+                        fill="none" 
+                    />
+                    <path 
+                        d={`M${gbw},${height/2}
+                            L${gbw},${height/2-circle}
+                            A${circle},${circle} 0 0,1 
+                            ${gbw},${height/2 + circle}z`}
+                        fill="#AB5239"
+                        stroke="black"
+                        strokeWidth="0.5"
+                    />
+                    <path
+                        d={`M0,${tpls}
+                            L${tplsw},${tpls}
+                            A${tpl},${tpl} 0 0,1
+                            ${tplsw},${height-tpls}
+                            L0,${height-tpls}z`}
+                        fill="none"
+                        stroke="black"
+                        strokeWidth="0.5"
+                    />
+                    {/*right coart*/}
+                    <rect
+                        x={width - gbw} y={(height - gbh)/2}
+                        width={gbw} height={gbh}
+                        stroke="#000" strokeWidth="0.5"
+                        fill="none" 
+                    />
+                    <path 
+                        d={`M${width-gbw},${height/2}
+                            L${width-gbw},${height/2-circle}
+                            A${circle},${circle} 0 0,0 
+                            ${width-gbw},${height/2 + circle}z`}
+                        fill="#AB5239"
+                        stroke="black"
+                        strokeWidth="0.5"
+                    />
+                    <path
+                        d={`M${width},${tpls}
+                            L${width-tplsw},${tpls}
+                            A${tpl},${tpl} 0 0,0
+                            ${width-tplsw},${height-tpls}
+                            L${width},${height-tpls}z`}
+                        fill="none"
+                        stroke="black"
+                        strokeWidth="0.5"
+                    />
+                    {Point.map((coor, index) => {
+                        return <circle cx={coor[0]} cy={coor[1]} r="1" fill={coor[2]} />
+                    })}
+                </svg>
+            )
+        }
+    }
+
+    const Counter = () => {
+        return (
+            <Col>
+                <Row>
+                    {/*
+                    <Col>
+                        <Row>
+                        <div className="background2">
+                            <Col><span className="label"></span></Col>
+                            <Row className="p-1">
+                                <Col className="mx-0 px-1">
+                                    <span className="AB">A</span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    className="square-button"
+                                    onClick={onCnt}>-</Button>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <span className="number">
+                                    </span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    className="square-button"
+                                    onClick={onCnt}>+</Button>
+                                </Col>
+                            </Row>
+                            <Row className="p-1">
+                                <Col className="mx-0 px-1">
+                                    <span className="AB">B</span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    className="square-button"
+                                    onClick={onCnt}>-</Button>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <span className="number">
+                                    </span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    className="square-button"
+                                    onClick={onCnt}>+</Button>
+                                </Col>
+                            </Row>
+                        </div>
+                        </Row>
+                    </Col>
+                    */}
+                    <Col>
+                        <Row>
+                        <div className="background1">
+                            <Col><span className="label">FOUL</span></Col>
+                            <Row className="p-1">
+                                <Col className="mx-0 px-1">
+                                    <span className="AB">A</span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="foulAM"
+                                    className="square-button"
+                                    onClick={onCnt}>-</Button>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <span className="number">
+                                        {FOULA}
+                                    </span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="foulAP"
+                                    className="square-button"
+                                    onClick={onCnt}>+</Button>
+                                </Col>
+                            </Row>
+                            <Row className="p-1">
+                                <Col className="mx-0 px-1">
+                                    <span className="AB">B</span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="foulBM"
+                                    className="square-button"
+                                    onClick={onCnt}>-</Button>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <span className="number">
+                                        {FOULB}
+                                    </span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="foulBP"
+                                    className="square-button"
+                                    onClick={onCnt}>+</Button>
+                                </Col>
+                            </Row>
+                        </div>
+                        </Row>
+                    </Col>
+                    <Col>
+                        <Row>
+                        <div className="background2">
+                            <Col><span className="label">ASSIST</span></Col>
+                            <Row className="p-1">
+                                <Col className="mx-0 px-1">
+                                    <span className="AB">A</span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="assistAM"
+                                    className="square-button"
+                                    onClick={onCnt}>-</Button>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <span className="number">
+                                        {ASSISTA}
+                                    </span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="assistAP"
+                                    className="square-button"
+                                    onClick={onCnt}>+</Button>
+                                </Col>
+                            </Row>
+                            <Row className="p-1">
+                                <Col className="mx-0 px-1">
+                                    <span className="AB">B</span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="assistBM"
+                                    className="square-button"
+                                    onClick={onCnt}>-</Button>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <span className="number">
+                                        {ASSISTB}
+                                    </span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="assistBP"
+                                    className="square-button"
+                                    onClick={onCnt}>+</Button>
+                                </Col>
+                            </Row>
+                        </div>
+                        </Row>
+                    </Col>
+                    <Col>
+                        <Row>
+                        <div className="background1">
+                            <Col><span className="label">STEAL</span></Col>
+                            <Row className="p-1">
+                                <Col className="mx-0 px-1">
+                                    <span className="AB">A</span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="stealAM"
+                                    className="square-button"
+                                    onClick={onCnt}>-</Button>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <span className="number">
+                                        {STEALA}
+                                    </span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="stealAP"
+                                    className="square-button"
+                                    onClick={onCnt}>+</Button>
+                                </Col>
+                            </Row>
+                            <Row className="p-1">
+                                <Col className="mx-0 px-1">
+                                    <span className="AB">B</span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="stealBM"
+                                    className="square-button"
+                                    onClick={onCnt}>-</Button>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <span className="number">
+                                        {STEALB}
+                                    </span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="stealBP"
+                                    className="square-button"
+                                    onClick={onCnt}>+</Button>
+                                </Col>
+                            </Row>
+                        </div>
+                        </Row>
+                    </Col>
+                </Row>
+                <Row>
+                    <Col>
+                        <Row>
+                        <div className="background2">
+                            <Col><span className="label">FT</span></Col>
+                            <Col><span>A</span></Col>
+                            <Row className="p-1">
+                                <Col className="mx-0 px-1">
+                                    <span className="AB">M</span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="ftMAM"
+                                    className="square-button"
+                                    onClick={onCnt}>-</Button>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <span className="number">
+                                    {FTMA}
+                                    </span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="ftMAP"
+                                    className="square-button"
+                                    onClick={onCnt}>+</Button>
+                                </Col>
+                            </Row>
+                            <Row className="p-1">
+                                <Col className="mx-0 px-1">
+                                    <span className="AB">A</span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="ftAAM"
+                                    className="square-button"
+                                    onClick={onCnt}>-</Button>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <span className="number">
+                                        {FTAA}
+                                    </span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="ftAAP"
+                                    className="square-button"
+                                    onClick={onCnt}>+</Button>
+                                </Col>
+                            </Row>
+                            <span className="AB">B</span>
+                            <Row className="p-1">
+                                <Col className="mx-0 px-1">
+                                    <span className="AB">M</span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="ftMBM"
+                                    className="square-button"
+                                    onClick={onCnt}>-</Button>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <span className="number">
+                                        {FTMB}
+                                    </span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="ftMBP"
+                                    className="square-button"
+                                    onClick={onCnt}>+</Button>
+                                </Col>
+                            </Row>
+                            <Row className="p-1">
+                                <Col className="mx-0 px-1">
+                                    <span className="AB">A</span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="ftABM"
+                                    className="square-button"
+                                    onClick={onCnt}>-</Button>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <span className="number">
+                                        {FTAB}
+                                    </span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="ftABP"
+                                    className="square-button"
+                                    onClick={onCnt}>+</Button>
+                                </Col>
+                            </Row>
+                        </div>
+                        </Row>
+                    </Col>
+                    <Col>
+                        <Row>
+                        <div className="background1">
+                            <Col><span className="label">REBOUND</span></Col>
+                            <Col><span>A</span></Col>
+                            <Row className="p-1">
+                                <Col className="mx-0 px-1">
+                                    <span className="AB">D</span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="reboundDAM"
+                                    className="square-button"
+                                    onClick={onCnt}>-</Button>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <span className="number">
+                                        {REBOUND_DA}
+                                    </span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="reboundDAP"
+                                    className="square-button"
+                                    onClick={onCnt}>+</Button>
+                                </Col>
+                            </Row>
+                            <Row className="p-1">
+                                <Col className="mx-0 px-1">
+                                    <span className="AB">O</span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="reboundOAM"
+                                    className="square-button"
+                                    onClick={onCnt}>-</Button>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <span className="number">
+                                        {REBOUND_OA}
+                                    </span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="reboundOAP"
+                                    className="square-button"
+                                    onClick={onCnt}>+</Button>
+                                </Col>
+                            </Row>
+                            <span className="AB">B</span>
+                            <Row className="p-1">
+                                <Col className="mx-0 px-1">
+                                    <span className="AB">D</span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="reboundDBM"
+                                    className="square-button"
+                                    onClick={onCnt}>-</Button>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <span className="number">
+                                        {REBOUND_DB}
+                                    </span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="reboundDBP"
+                                    className="square-button"
+                                    onClick={onCnt}>+</Button>
+                                </Col>
+                            </Row>
+                            <Row className="p-1">
+                                <Col className="mx-0 px-1">
+                                    <span className="AB">O</span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="reboundOBM"
+                                    className="square-button"
+                                    onClick={onCnt}>-</Button>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <span className="number">
+                                        {REBOUND_OB}
+                                    </span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="reboundOBP"
+                                    className="square-button"
+                                    onClick={onCnt}>+</Button>
+                                </Col>
+                            </Row>
+                        </div>
+                        </Row>
+                    </Col>
+                    <Col>
+                        <Row>
+                        <div className="background2">
+                            <Col><span className="label">BLOCK SCHOT</span></Col>
+                            <Row className="p-1">
+                                <Col className="mx-0 px-1">
+                                    <span className="AB">A</span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="bsAM"
+                                    className="square-button"
+                                    onClick={onCnt}>-</Button>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <span className="number">
+                                        {BSA}
+                                    </span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="bsAP"
+                                    className="square-button"
+                                    onClick={onCnt}>+</Button>
+                                </Col>
+                            </Row>
+                            <Row className="p-1">
+                                <Col className="mx-0 px-1">
+                                    <span className="AB">B</span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="bsBM"
+                                    className="square-button"
+                                    onClick={onCnt}>-</Button>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <span className="number">
+                                        {BSB}
+                                    </span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="bsBP"
+                                    className="square-button"
+                                    onClick={onCnt}>+</Button>
+                                </Col>
+                            </Row>
+                        </div>
+                        </Row>
+                        <Row>
+                        <div className="background1">
+                            <Col><span className="label">TURN OVER</span></Col>
+                            <Row className="p-1">
+                                <Col className="mx-0 px-1">
+                                    <span className="AB">A</span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="toAM"
+                                    className="square-button"
+                                    onClick={onCnt}>-</Button>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <span className="number">
+                                        {TOA}
+                                    </span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="toAP"
+                                    className="square-button"
+                                    onClick={onCnt}>+</Button>
+                                </Col>
+                            </Row>
+                            <Row className="p-1">
+                                <Col className="mx-0 px-1">
+                                    <span className="AB">B</span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="toBM"
+                                    className="square-button"
+                                    onClick={onCnt}>-</Button>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <span className="number">
+                                        {TOB}
+                                    </span>
+                                </Col>
+                                <Col className="mx-0 px-1">
+                                    <Button
+                                    id="toBP"
+                                    className="square-button"
+                                    onClick={onCnt}>+</Button>
+                                </Col>
+                            </Row>
+                        </div>
+                        </Row>
+                    </Col>
+                </Row>
+            </Col>
+        );
+    }
+
+    const Result = () => {
+        return (
+            <Table striped bordered>
+                <thead>
+                    <tr>
+                        <th>Team</th>
+                        <th>PTS</th>
+                        <th>FG</th>
+                        <th>3FG</th>
+                        <th>2FG</th>
+                        <th>FT</th>
+                        <th>FOUL</th>
+                        <th>REBOUND</th>
+                        <th>ASSIST</th>
+                        <th>STEAL</th>
+                        <th>BS</th>
+                        <th>TO</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>A</td>
+                        <td>{FGPA + FTMA}</td>
+                        <td>M : {FGMA}<br/>A : {FGAA}<br/>{(FGMA/FGAA*100).toFixed(0)}%</td>
+                        <td>M : {FG3MA}<br/>A : {FG3AA}<br/>{(FG3MA/FG3AA*100).toFixed(0)}%</td>
+                        <td>M : {FG2MA}<br/>A : {FG2AA}<br/>{(FG2MA/FG2AA*100).toFixed(0)}%</td>
+                        <td>M : {FTMA}<br/>A : {FTAA+FTMA}<br/>{(FTMA/(FTAA+FTMA)*100).toFixed(0)}%</td>
+                        <td>{FOULA}</td>
+                        <td>DIF : {REBOUND_DA}<br/>OFF : {REBOUND_OA}<br/>Total : {REBOUND_DA+REBOUND_OA}</td>
+                        <td>{ASSISTA}</td>
+                        <td>{STEALA}</td>
+                        <td>{BSA}</td>
+                        <td>{TOA}</td>
+                    </tr>
+                    <tr>
+                        <td>B</td>
+                        <td>{FGPB + FTMB}</td>
+                        <td>M : {FGMB}<br/>A : {FGAB}<br/>{(FGMB/FGAB*100).toFixed(0)}%</td>
+                        <td>M : {FG3MB}<br/>A : {FG3AB}<br/>{(FG3MB/FG3AB*100).toFixed(0)}%</td>
+                        <td>M : {FG2MB}<br/>A : {FG2AB}<br/>{(FG2MB/FG2AB*100).toFixed(0)}%</td>
+                        <td>M : {FTMB}<br/>A : {FTAB+FTMB}<br/>{(FTMB/(FTAB+FTMB)*100).toFixed(0)}%</td>
+                        <td>{FOULB}</td>
+                        <td>DIF : {REBOUND_DB}<br/>OFF : {REBOUND_OB}<br/>Total : {REBOUND_DB+REBOUND_OB}</td>
+                        <td>{ASSISTB}</td>
+                        <td>{STEALB}</td>
+                        <td>{BSB}</td>
+                        <td>{TOB}</td>
+                    </tr>
+                </tbody>
+            </Table>
+        )
+    }
+    const Result2 = () => {
+        return (
+            <Table striped bordered>
+            	<thead>
+            		<tr>
+            			<th>Team</th>
+            			<th>PPP</th>
+            			<th>POSS</th>
+            			<th>eFG%</th>
+                        <th>TO%</th>
+                        <th>FTR</th>
+                        <th>ORB%</th>
+                        <th>DRB%</th>
+                        <th>TRB%</th>
+            		</tr>
+            	</thead>
+            	<tbody>
+            		<tr>
+            			<td>A:</td>
+            			<td>{((FGPA+FTMA)/(FGAA+0.44*FTAA+TOA)).toFixed(3)}</td>
+            			<td>{(FGAA+0.44*FTAA+TOA).toFixed(2)}</td>
+            			<td>{(((FGMA+FG3MA*0.5)/FGAA)*100).toFixed(2)}%</td>
+            			<td>{(TOA/(FGAA+0.44*FTAA+TOA)*100).toFixed(2)}%</td>
+            			<td>{(FTAA/FGAA).toFixed(3)}</td>
+            			<td>{(REBOUND_OA/(REBOUND_OA+REBOUND_DB)*100).toFixed(2)}%</td>
+            			<td>{(REBOUND_DA/(REBOUND_DA+REBOUND_OB)*100).toFixed(2)}%</td>
+            			<td>{((REBOUND_OA+REBOUND_DA)/(REBOUND_OA+REBOUND_DA+REBOUND_DB+REBOUND_OB)*100).toFixed(2)}%</td>
+            		</tr>
+            		<tr>
+            			<td>B:</td>
+            			<td>{((FGPB+FTMB)/(FGAB+0.44*FTAB+TOB)).toFixed(3)}</td>
+            			<td>{(FGAB+0.44*FTAB+TOB).toFixed(2)}%</td>
+            			<td>{((FGMB+FG3MB*0.5)/FGAB*100).toFixed(2)}%</td>
+            			<td>{(TOB/(FGAB+0.44*FTAB+TOB)*100).toFixed(2)}%</td>
+            			<td>{(FTAB/FGAB).toFixed(3)}</td>
+            			<td>{(REBOUND_OB/(REBOUND_OB+REBOUND_DA)*100).toFixed(2)}%</td>
+            			<td>{(REBOUND_DB/(REBOUND_DB+REBOUND_OA)*100).toFixed(2)}%</td>
+            			<td>{((REBOUND_OB+REBOUND_DB)/(REBOUND_OA+REBOUND_DA+REBOUND_DB+REBOUND_OB)*100).toFixed(2)}%</td>
+            		</tr>
+            	</tbody>
+            </Table>
+        )
+    }
+
 	if (logininfo.state == "signin") {
 		return (
 			<Container>
-				<Row className="gap-1">
-                    {/*<CourtComponet readonly={false} GoalorNot={GoalorNot}/>*/}
-                    <Row>
-                        <Col>
-                        <span className="mx-2">{Point.length > 0?Point[Point.length-1][0]>=50?"右チーム":"左チーム":"None"}</span>
-                        <span className="mx-2">{Point.length > 0?Point[Point.length-1][2]==="red"?"Goal":"Not Goal":"None"}</span>
-                        <span className="mx-2">得点:{Point.length > 0?Point[Point.length-1][3]:"None"}</span>
-                        </Col>
-                    </Row>
-                    <svg id="coart" width="100%" height="100%" viewBox={`0 0 100 ${height}`} onClick={handleClick}>
-                        {/* harf coart
-                        <rect x="0.5" y="0" width="99" height="100" fill="#AB5239"/>
-                        <line x1="0.5" y1="0" x2="99.5" y2="0" stroke="#000" strokeWidth="0.5"/>
-                        <line x1="0.5" y1="0" x2="0.5" y2="99" stroke="#000" strokeWidth="0.5"/>
-                        <line x1="99.5" y1="0" x2="99.5" y2="99" stroke="#000" strokeWidth="0.5"/>
-                        <line x1="0.5" y1="93" x2="99.5" y2="93" stroke="#000" strokeWidth="0.5"/>
-                        <path d="M 93.5,0 L 93.5,20 A 45,45 0 0,1 6.5,20 L6.5,0z" fill="#AB5239" stroke="black" strokeWidth="0.5" />
-                        <circle cx="50" cy="93" r="12" fill="none" strokeWidth="0.5" stroke="#000"/>
-                        <rect x="33.7" y="0" width="32.7" height="38.7" stroke="black" strokeWidth="0.5" fill="none"/>
-                        <path d="M 50,38.75 L62,38.75 A 12,12 0 0,1 38,38.75z" fill="none"stroke="black" strokeWidth="0.5" />
-                        */}
-                        <rect x="0" y="0" width={width} height={height} fill="#AB5239"/>
-                        <line x1="0" y1="0" x2="0" y2={height} stroke="#000" strokeWidth="1"/>
-                        <line x1={width} y1="0" x2={width} y2={height} stroke="#000" strokeWidth="1"/>
-                        <line x1="0" y1="0" x2={width} y2="0" stroke="#000" strokeWidth="1"/>
-                        <line x1="0" y1={height} x2={width} y2={height} stroke="#000" strokeWidth="1"/>
-                        {/*center line and center circle*/}
-                        <line x1={width/2} y1="0" x2={width/2} y2={height} stroke="#000" strokeWidth="0.5"/>
-                        <circle cx={width/2} cy={height/2} r={circle} stroke="#000" strokeWidth="0.5" fill="none"/>
-                        
-                        {/*left coart*/}
-                        <rect
-                            x="0" y={(height - gbh)/2}
-                            width={gbw} height={gbh}
-                            stroke="#000" strokeWidth="0.5"
-                            fill="none" 
-                        />
-                        <path 
-                            d={`M${gbw},${height/2}
-                                L${gbw},${height/2-circle}
-                                A${circle},${circle} 0 0,1 
-                                ${gbw},${height/2 + circle}z`}
-                            fill="#AB5239"
-                            stroke="black"
-                            strokeWidth="0.5"
-                        />
-                        <path
-                            d={`M0,${tpls}
-                                L${tplsw},${tpls}
-                                A${tpl},${tpl} 0 0,1
-                                ${tplsw},${height-tpls}
-                                L0,${height-tpls}z`}
-                            fill="none"
-                            stroke="black"
-                            strokeWidth="0.5"
-                        />
-                        {/*right coart*/}
-                        <rect
-                            x={width - gbw} y={(height - gbh)/2}
-                            width={gbw} height={gbh}
-                            stroke="#000" strokeWidth="0.5"
-                            fill="none" 
-                        />
-                        <path 
-                            d={`M${width-gbw},${height/2}
-                                L${width-gbw},${height/2-circle}
-                                A${circle},${circle} 0 0,0 
-                                ${width-gbw},${height/2 + circle}z`}
-                            fill="#AB5239"
-                            stroke="black"
-                            strokeWidth="0.5"
-                        />
-                        <path
-                            d={`M${width},${tpls}
-                                L${width-tplsw},${tpls}
-                                A${tpl},${tpl} 0 0,0
-                                ${width-tplsw},${height-tpls}
-                                L${width},${height-tpls}z`}
-                            fill="none"
-                            stroke="black"
-                            strokeWidth="0.5"
-                        />
-
-                        {/*
-                        <path d="M 94,18 a 45 45 10 0 1 -88,0" fill="none" stroke="black"/>
-                        <path d="M 95,10 a 45 45 0 0 1 -90,0" fill="none" stroke="black"/>
-                        <path d=" M50,10.5 L90,0 A45,45 0 1,1 9,0z" fill="none" stroke="black" strokeWidth="0.5"/>
-                        <path d="M 6,0 L 6,20  A 45,45 0 0,1 90,20 z" stroke="black" strokeWidth="0.5"/>
-                        */}
-
-
-                        {Point.map((coor, index) => {
-                            return <circle cx={coor[0]} cy={coor[1]} r="1" fill={coor[2]} />
-                        })}
-                    </svg>
-                    <ButtonToolbar className="gap-1">
-                        <Button onClick={onGoal}>Goal</Button>
-                        <Button onClick={onNotGoal}>Not Goal</Button>
-                        <Button onClick={onBack}>Back</Button>
-                        <Button onClick={onClear}>All clear</Button>
-                    </ButtonToolbar>
-                    {/*
-                    <Row>
-                        <Col>
-                        <span className="mx-2">成功 : {Goal}</span>
-                        <span className="mx-2">失敗 : {NotGoal}</span>
-                        <span className="mx-2">ゴール率 : {GoalRate.toFixed(2)}</span>
-                        </Col>
-                    </Row>
-                    <span>pts 得点</span>
-                    <span>fg フィールドゴール:フリースローを除いたゴール</span>
-                    <span>3fg</span>
-                    <span>2fg</span>
-                    <span>ft フリースロー</span>
-                    <span>foul ファール</span>
-                    <spna>rebound リバウンド</span>
-                    <span>assist アシスト</span>
-                    <span>steal</span>
-                    <span>block shot</span>
-                    <span>to ターンオーバー:反則</span>
-                    */}
-                    <Col>
-                    <Row>
-                        {/*
-                        <Col>
-                            <Row>
-                            <div className="background2">
-                                <Col><span className="label"></span></Col>
-                                <Row className="p-1">
-                                    <Col className="mx-0 px-1">
-                                        <span className="AB">A</span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        className="square-button"
-                                        onClick={onCnt}>-</Button>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <span className="number">
-                                        </span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        className="square-button"
-                                        onClick={onCnt}>+</Button>
-                                    </Col>
-                                </Row>
-                                <Row className="p-1">
-                                    <Col className="mx-0 px-1">
-                                        <span className="AB">B</span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        className="square-button"
-                                        onClick={onCnt}>-</Button>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <span className="number">
-                                        </span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        className="square-button"
-                                        onClick={onCnt}>+</Button>
-                                    </Col>
-                                </Row>
-                            </div>
-                            </Row>
-                        </Col>
-                        */}
-                        <Col>
-                            <Row>
-                            <div className="background1">
-                                <Col><span className="label">FOUL</span></Col>
-                                <Row className="p-1">
-                                    <Col className="mx-0 px-1">
-                                        <span className="AB">A</span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="foulAM"
-                                        className="square-button"
-                                        onClick={onCnt}>-</Button>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <span className="number">
-                                            {FOULA}
-                                        </span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="foulAP"
-                                        className="square-button"
-                                        onClick={onCnt}>+</Button>
-                                    </Col>
-                                </Row>
-                                <Row className="p-1">
-                                    <Col className="mx-0 px-1">
-                                        <span className="AB">B</span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="foulBM"
-                                        className="square-button"
-                                        onClick={onCnt}>-</Button>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <span className="number">
-                                            {FOULB}
-                                        </span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="foulBP"
-                                        className="square-button"
-                                        onClick={onCnt}>+</Button>
-                                    </Col>
-                                </Row>
-                            </div>
-                            </Row>
-                        </Col>
-                        <Col>
-                            <Row>
-                            <div className="background2">
-                                <Col><span className="label">ASSIST</span></Col>
-                                <Row className="p-1">
-                                    <Col className="mx-0 px-1">
-                                        <span className="AB">A</span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="assistAM"
-                                        className="square-button"
-                                        onClick={onCnt}>-</Button>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <span className="number">
-                                            {ASSISTA}
-                                        </span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="assistAP"
-                                        className="square-button"
-                                        onClick={onCnt}>+</Button>
-                                    </Col>
-                                </Row>
-                                <Row className="p-1">
-                                    <Col className="mx-0 px-1">
-                                        <span className="AB">B</span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="assistBM"
-                                        className="square-button"
-                                        onClick={onCnt}>-</Button>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <span className="number">
-                                            {ASSISTB}
-                                        </span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="assistBP"
-                                        className="square-button"
-                                        onClick={onCnt}>+</Button>
-                                    </Col>
-                                </Row>
-                            </div>
-                            </Row>
-                        </Col>
-                        <Col>
-                            <Row>
-                            <div className="background1">
-                                <Col><span className="label">STEAL</span></Col>
-                                <Row className="p-1">
-                                    <Col className="mx-0 px-1">
-                                        <span className="AB">A</span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="stealAM"
-                                        className="square-button"
-                                        onClick={onCnt}>-</Button>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <span className="number">
-                                            {STEALA}
-                                        </span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="stealAP"
-                                        className="square-button"
-                                        onClick={onCnt}>+</Button>
-                                    </Col>
-                                </Row>
-                                <Row className="p-1">
-                                    <Col className="mx-0 px-1">
-                                        <span className="AB">B</span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="stealBM"
-                                        className="square-button"
-                                        onClick={onCnt}>-</Button>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <span className="number">
-                                            {STEALB}
-                                        </span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="stealBP"
-                                        className="square-button"
-                                        onClick={onCnt}>+</Button>
-                                    </Col>
-                                </Row>
-                            </div>
-                            </Row>
-                        </Col>
-                    </Row>
-                    <Row>
-                        <Col>
-                            <Row>
-                            <div className="background2">
-                                <Col><span className="label">FT</span></Col>
-                                <Col><span>A</span></Col>
-                                <Row className="p-1">
-                                    <Col className="mx-0 px-1">
-                                        <span className="AB">M</span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="ftMAM"
-                                        className="square-button"
-                                        onClick={onCnt}>-</Button>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <span className="number">
-                                        {FTMA}
-                                        </span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="ftMAP"
-                                        className="square-button"
-                                        onClick={onCnt}>+</Button>
-                                    </Col>
-                                </Row>
-                                <Row className="p-1">
-                                    <Col className="mx-0 px-1">
-                                        <span className="AB">A</span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="ftAAM"
-                                        className="square-button"
-                                        onClick={onCnt}>-</Button>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <span className="number">
-                                            {FTAA}
-                                        </span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="ftAAP"
-                                        className="square-button"
-                                        onClick={onCnt}>+</Button>
-                                    </Col>
-                                </Row>
-                                <span className="AB">B</span>
-                                <Row className="p-1">
-                                    <Col className="mx-0 px-1">
-                                        <span className="AB">M</span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="ftMBM"
-                                        className="square-button"
-                                        onClick={onCnt}>-</Button>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <span className="number">
-                                            {FTMB}
-                                        </span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="ftMBP"
-                                        className="square-button"
-                                        onClick={onCnt}>+</Button>
-                                    </Col>
-                                </Row>
-                                <Row className="p-1">
-                                    <Col className="mx-0 px-1">
-                                        <span className="AB">A</span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="ftABM"
-                                        className="square-button"
-                                        onClick={onCnt}>-</Button>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <span className="number">
-                                            {FTAB}
-                                        </span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="ftABP"
-                                        className="square-button"
-                                        onClick={onCnt}>+</Button>
-                                    </Col>
-                                </Row>
-                            </div>
-                            </Row>
-                        </Col>
-                        <Col>
-                            <Row>
-                            <div className="background1">
-                                <Col><span className="label">REBOUND</span></Col>
-                                <Col><span>A</span></Col>
-                                <Row className="p-1">
-                                    <Col className="mx-0 px-1">
-                                        <span className="AB">D</span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="reboundDAM"
-                                        className="square-button"
-                                        onClick={onCnt}>-</Button>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <span className="number">
-                                            {REBOUND_DA}
-                                        </span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="reboundDAP"
-                                        className="square-button"
-                                        onClick={onCnt}>+</Button>
-                                    </Col>
-                                </Row>
-                                <Row className="p-1">
-                                    <Col className="mx-0 px-1">
-                                        <span className="AB">O</span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="reboundOAM"
-                                        className="square-button"
-                                        onClick={onCnt}>-</Button>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <span className="number">
-                                            {REBOUND_OA}
-                                        </span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="reboundOAP"
-                                        className="square-button"
-                                        onClick={onCnt}>+</Button>
-                                    </Col>
-                                </Row>
-                                <span className="AB">B</span>
-                                <Row className="p-1">
-                                    <Col className="mx-0 px-1">
-                                        <span className="AB">D</span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="reboundDBM"
-                                        className="square-button"
-                                        onClick={onCnt}>-</Button>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <span className="number">
-                                            {REBOUND_DB}
-                                        </span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="reboundDBP"
-                                        className="square-button"
-                                        onClick={onCnt}>+</Button>
-                                    </Col>
-                                </Row>
-                                <Row className="p-1">
-                                    <Col className="mx-0 px-1">
-                                        <span className="AB">O</span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="reboundOBM"
-                                        className="square-button"
-                                        onClick={onCnt}>-</Button>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <span className="number">
-                                            {REBOUND_OB}
-                                        </span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="reboundOBP"
-                                        className="square-button"
-                                        onClick={onCnt}>+</Button>
-                                    </Col>
-                                </Row>
-                            </div>
-                            </Row>
-                        </Col>
-                        <Col>
-                            <Row>
-                            <div className="background2">
-                                <Col><span className="label">BLOCK SCHOT</span></Col>
-                                <Row className="p-1">
-                                    <Col className="mx-0 px-1">
-                                        <span className="AB">A</span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="bsAM"
-                                        className="square-button"
-                                        onClick={onCnt}>-</Button>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <span className="number">
-                                            {BSA}
-                                        </span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="bsAP"
-                                        className="square-button"
-                                        onClick={onCnt}>+</Button>
-                                    </Col>
-                                </Row>
-                                <Row className="p-1">
-                                    <Col className="mx-0 px-1">
-                                        <span className="AB">B</span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="bsBM"
-                                        className="square-button"
-                                        onClick={onCnt}>-</Button>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <span className="number">
-                                            {BSB}
-                                        </span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="bsBP"
-                                        className="square-button"
-                                        onClick={onCnt}>+</Button>
-                                    </Col>
-                                </Row>
-                            </div>
-                            </Row>
-                            <Row>
-                            <div className="background1">
-                                <Col><span className="label">TURN OVER</span></Col>
-                                <Row className="p-1">
-                                    <Col className="mx-0 px-1">
-                                        <span className="AB">A</span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="toAM"
-                                        className="square-button"
-                                        onClick={onCnt}>-</Button>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <span className="number">
-                                            {TOA}
-                                        </span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="toAP"
-                                        className="square-button"
-                                        onClick={onCnt}>+</Button>
-                                    </Col>
-                                </Row>
-                                <Row className="p-1">
-                                    <Col className="mx-0 px-1">
-                                        <span className="AB">B</span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="toBM"
-                                        className="square-button"
-                                        onClick={onCnt}>-</Button>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <span className="number">
-                                            {TOB}
-                                        </span>
-                                    </Col>
-                                    <Col className="mx-0 px-1">
-                                        <Button
-                                        id="toBP"
-                                        className="square-button"
-                                        onClick={onCnt}>+</Button>
-                                    </Col>
-                                </Row>
-                            </div>
-                            </Row>
-                        </Col>
-                    </Row>
-                    </Col>
-                    {/*
-                    <Row>
-                        <Col>
-                            <div className="background1">
-                                <Col className="ps-40"><span className="label">REBOUND</span></Col>
-                                <Row className="m-1">
-                                    <Col><span>A</span></Col>
-                                    <Col><span>DIFF</span></Col>
-                                    <Col>
-                                        <Button
-                                        id="reboundDAM"
-                                        className="square-button"
-                                        onClick={onCnt}>-</Button>
-                                    </Col>
-                                    <Col>
-                                        <span className="number">
-                                            {REBOUND_DA}
-                                        </span>
-                                    </Col>
-                                    <Col>
-                                        <Button
-                                        id="reboundDAP"
-                                        className="square-button"
-                                        onClick={onCnt}>+</Button>
-                                    </Col>
-                                    <Col><span>OFF</span></Col>
-                                    <Col>
-                                        <Button
-                                        id="reboundOAM"
-                                        className="square-button"
-                                        onClick={onCnt}>-</Button>
-                                    </Col>
-                                    <Col>
-                                        <span className="number">
-                                            {REBOUND_OA}
-                                        </span>
-                                    </Col>
-                                    <Col>
-                                        <Button
-                                        id="reboundOAP"
-                                        className="square-button"
-                                        onClick={onCnt}>+</Button>
-                                    </Col>
-                                </Row>
-                                <Row className="m-1">
-                                    <Col><span>B</span></Col>
-                                    <Col><span>DIFF</span></Col>
-                                    <Col>
-                                        <Button
-                                        id="reboundDBM"
-                                        className="square-button"
-                                        onClick={onCnt}>-</Button>
-                                    </Col>
-                                    <Col>
-                                        <span className="number">
-                                            {REBOUND_DB}
-                                        </span>
-                                    </Col>
-                                    <Col>
-                                        <Button
-                                        id="reboundDBP"
-                                        className="square-button"
-                                        onClick={onCnt}>+</Button>
-                                    </Col>
-                                    <Col><span>OFF</span></Col>
-                                    <Col>
-                                        <Button
-                                        id="reboundOBM"
-                                        className="square-button"
-                                        onClick={onCnt}>-</Button>
-                                    </Col>
-                                    <Col>
-                                        <span className="number">
-                                            {REBOUND_OB}
-                                        </span>
-                                    </Col>
-                                    <Col>
-                                        <Button
-                                        id="reboundOBP"
-                                        className="square-button"
-                                        onClick={onCnt}>+</Button>
-                                    </Col>
-                                </Row>
-                            </div>
-                        </Col>
-                    </Row>
-                    */}
-                    {/*
-                    <svg id="table" width="100%" height="100%" viewBox="0 0 100 21">
-                        <rect x="0" y="0" width="100" height="21" fill="none" stroke="#000" strokeWidth="1" />
-                        <line x1="10" y1="0" x2="10" y2="21" stroke="#000" strokeWidth="0.5"/>
-                        <line x1="20" y1="0" x2="20" y2="21" stroke="#000" strokeWidth="0.5"/>
-                        <line x1="30" y1="0" x2="30" y2="21" stroke="#000" strokeWidth="0.5"/>
-                        <line x1="40" y1="0" x2="40" y2="21" stroke="#000" strokeWidth="0.5"/>
-                        <line x1="50" y1="0" x2="50" y2="21" stroke="#000" strokeWidth="0.5"/>
-                        <line x1="60" y1="0" x2="60" y2="21" stroke="#000" strokeWidth="0.5"/>
-                        <line x1="70" y1="0" x2="70" y2="21" stroke="#000" strokeWidth="0.5"/>
-                        <line x1="80" y1="0" x2="80" y2="21" stroke="#000" strokeWidth="0.5"/>
-                        <line x1="90" y1="0" x2="90" y2="21" stroke="#000" strokeWidth="0.5"/>
-                        
-                        <line x1="0" y1="7" x2="100" y2="7" stroke="#000" strokeWidth="0.5"/>
-                        <line x1="0" y1="14" x2="100" y2="14" stroke="#000" strokeWidth="0.5"/>
-                        <line x1="0" y1="21" x2="100" y2="21" stroke="#000" strokeWidth="0.5"/>
-
-                        <text x="1.5" y="5" font-size="3">Team</text>
-                        <text x="12.5" y="5" font-size="3">PPP</text>
-                        <text x="21.5" y="5" font-size="3">POSS</text>
-                        <text x="31" y="5" font-size="3">eFG%</text>
-                        <text x="42" y="5" font-size="3">TO%</text>
-                        <text x="52.5" y="5" font-size="3">FTR</text>
-                        <text x="60.5" y="5" font-size="3">ORB%</text>
-                        <text x="71" y="5" font-size="3">DRB%</text>
-                        <text x="81" y="5" font-size="3">TRB%</text>
-
-                    </svg>
-                    */}
-                    <Table striped bordered>
-                        <thead>
-                            <tr>
-                                <th>Team</th>
-                                <th>PTS</th>
-                                <th>FG</th>
-                                <th>3FG</th>
-                                <th>2FG</th>
-                                <th>FT</th>
-                                <th>FOUL</th>
-                                <th>REBOUND</th>
-                                <th>ASSIST</th>
-                                <th>STEAL</th>
-                                <th>BS</th>
-                                <th>TO</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>A</td>
-                                <td>{FGPA + FTMA}</td>
-                                <td>M : {FGMA}<br/>A : {FGAA}<br/>{(FGMA/FGAA*100).toFixed(0)}%</td>
-                                <td>M : {FG3MA}<br/>A : {FG3AA}<br/>{(FG3MA/FG3AA*100).toFixed(0)}%</td>
-                                <td>M : {FG2MA}<br/>A : {FG2AA}<br/>{(FG2MA/FG2AA*100).toFixed(0)}%</td>
-                                <td>M : {FTMA}<br/>A : {FTAA}<br/>{(FTMA/FTAA*100).toFixed(0)}%</td>
-                                <td>{FOULA}</td>
-                                <td>DIF : {REBOUND_DA}<br/>OFF : {REBOUND_OA}<br/>Total : {REBOUND_DA+REBOUND_OA}</td>
-                                <td>{ASSISTA}</td>
-                                <td>{STEALA}</td>
-                                <td>{BSA}</td>
-                                <td>{TOA}</td>
-                            </tr>
-                            <tr>
-                                <td>B</td>
-                                <td>{FGPB + FTMB}</td>
-                                <td>M : {FGMB}<br/>A : {FGAB}<br/>{(FGMB/FGAB*100).toFixed(0)}%</td>
-                                <td>M : {FG3MB}<br/>A : {FG3AB}<br/>{(FG3MB/FG3AB*100).toFixed(0)}%</td>
-                                <td>M : {FG2MB}<br/>A : {FG2AB}<br/>{(FG2MB/FG2AB*100).toFixed(0)}%</td>
-                                <td>M : {FTMB}<br/>A : {FTAB}<br/>{(FTMB/FTAB*100).toFixed(0)}%</td>
-                                <td>{FOULB}</td>
-                                <td>DIF : {REBOUND_DB}<br/>OFF : {REBOUND_OB}<br/>Total : {REBOUND_DB+REBOUND_OB}</td>
-                                <td>{ASSISTB}</td>
-                                <td>{STEALB}</td>
-                                <td>{BSB}</td>
-                                <td>{TOB}</td>
-                            </tr>
-                        </tbody>
-                    </Table>
-                    <Table striped bordered>
-                    	<thead>
-                    		<tr>
-                    			<th>Team</th>
-                    			<th>PPP</th>
-                    			<th>POSS</th>
-                    			<th>eFG%</th>
-                                <th>TO%</th>
-                                <th>FTR</th>
-                                <th>ORB%</th>
-                                <th>DRB%</th>
-                                <th>TRB%</th>
-                    		</tr>
-                    	</thead>
-                    	<tbody>
-                    		<tr>
-                    			<td>A:</td>
-                    			<td>{((FGPA+FTMA)/(FGAA+0.44*FTAA+TOA)).toFixed(3)}</td>
-                    			<td>{(FGAA+0.44*FTAA+TOA).toFixed(2)}</td>
-                    			<td>{(((FGMA+FG3MA*0.5)/FGAA)*100).toFixed(2)}%</td>
-                    			<td>{(TOA/(FGAA+0.44*FTAA+TOA)*100).toFixed(2)}%</td>
-                    			<td>{(FTAA/FGAA).toFixed(3)}</td>
-                    			<td>{(REBOUND_OA/(REBOUND_OA+REBOUND_DB)*100).toFixed(2)}%</td>
-                    			<td>{(REBOUND_DA/(REBOUND_DA+REBOUND_OB)*100).toFixed(2)}%</td>
-                    			<td>{((REBOUND_OA+REBOUND_DA)/(REBOUND_OA+REBOUND_DA+REBOUND_DB+REBOUND_OB)*100).toFixed(2)}%</td>
-                    		</tr>
-                    		<tr>
-                    			<td>B:</td>
-                    			<td>{((FGPB+FTMB)/(FGAB+0.44*FTAB+TOB)).toFixed(3)}</td>
-                    			<td>{(FGAB+0.44*FTAB+TOB).toFixed(2)}%</td>
-                    			<td>{((FGMB+FG3MB*0.5)/FGAB*100).toFixed(2)}%</td>
-                    			<td>{(TOB/(FGAB+0.44*FTAB+TOB)*100).toFixed(2)}%</td>
-                    			<td>{(FTAB/FGAB).toFixed(3)}</td>
-                    			<td>{(REBOUND_OB/(REBOUND_OB+REBOUND_DA)*100).toFixed(2)}%</td>
-                    			<td>{(REBOUND_DB/(REBOUND_DB+REBOUND_OA)*100).toFixed(2)}%</td>
-                    			<td>{((REBOUND_OB+REBOUND_DB)/(REBOUND_OA+REBOUND_DA+REBOUND_DB+REBOUND_OB)*100).toFixed(2)}%</td>
-                    		</tr>
-                    	</tbody>
-                    </Table>
-                </Row>
+                <Tabs>
+                    <Tab eventKey="info" title="基本情報">
+                        <Row className="my-1">
+                            <Form>
+                                <Form.Group as={Col} md="9" controlId="validationCustom04">
+                                    <Form.Label>日付</Form.Label>
+                                    <Form.Control type="date"/>
+                                    <Form.Control.Feedback>OK!</Form.Control.Feedback>
+                                    <Form.Control.Feedback type="invalid">日付を入力してください</Form.Control.Feedback>
+                                </Form.Group>
+                                <Form.Group controlId="formBasicTeamName">
+                                    <Form.Label>Team A</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Team A"
+                                        value={teamA}
+                                        onChange={(e) => setTeamA(e.target.value)}
+                                    />
+                                    <Form.Label>Team B</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Team B"
+                                        value={teamB}
+                                        onChange={(e) => setTeamB(e.target.value)}
+                                    />
+                                </Form.Group>
+                            </Form>
+                        </Row>
+                    </Tab>
+                    <Tab eventKey="Q1" title="Q1">
+				        <Row className="gap-1">
+                            <Coat Edit={true}/>
+                            <ButtonToolbar className="gap-1">
+                                <Button onClick={onGoal}>Goal</Button>
+                                <Button onClick={onNotGoal}>Not Goal</Button>
+                                <Button onClick={onBack}>Back</Button>
+                                <Button onClick={onClear}>All clear</Button>
+                            </ButtonToolbar>
+                            <Counter/>
+                            <Result/>
+                            <Result2/>
+                        </Row>
+                    </Tab>
+                    <Tab eventKey="Q2" title="Q2">
+				        <Row className="gap-1">
+                            <Coat Edit={true}/>
+                            <ButtonToolbar className="gap-1">
+                                <Button onClick={onGoal}>Goal</Button>
+                                <Button onClick={onNotGoal}>Not Goal</Button>
+                                <Button onClick={onBack}>Back</Button>
+                                <Button onClick={onClear}>All clear</Button>
+                            </ButtonToolbar>
+                            <Counter/>
+                            <Result/>
+                            <Result2/>
+                        </Row>
+                    </Tab>
+                    <Tab eventKey="Q3" title="Q3">
+				        <Row className="gap-1">
+                            <Coat Edit={true}/>
+                            <ButtonToolbar className="gap-1">
+                                <Button onClick={onGoal}>Goal</Button>
+                                <Button onClick={onNotGoal}>Not Goal</Button>
+                                <Button onClick={onBack}>Back</Button>
+                                <Button onClick={onClear}>All clear</Button>
+                            </ButtonToolbar>
+                            <Counter/>
+                            <Result/>
+                            <Result2/>
+                        </Row>
+                    </Tab>
+                    <Tab eventKey="Q4" title="Q4">
+				        <Row className="gap-1">
+                            <Coat Edit={true}/>
+                            <ButtonToolbar className="gap-1">
+                                <Button onClick={onGoal}>Goal</Button>
+                                <Button onClick={onNotGoal}>Not Goal</Button>
+                                <Button onClick={onBack}>Back</Button>
+                                <Button onClick={onClear}>All clear</Button>
+                            </ButtonToolbar>
+                            <Counter/>
+                            <Result/>
+                            <Result2/>
+                        </Row>
+                    </Tab>
+                    <Tab eventKey="Total" title="Total">
+				        <Row className="gap-1">
+                            <Coat Edit={false}/>
+                            <Result/>
+                            <Result2/>
+                        </Row>
+                    </Tab>
+                </Tabs>
 			</Container>
 		);
 	} else {
