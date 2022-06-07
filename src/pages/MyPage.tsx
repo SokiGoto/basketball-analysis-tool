@@ -9,10 +9,16 @@ import Button from "react-bootstrap/Button";
 import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
 import { Link , useHistory } from "react-router-dom";
-import { LoginInfo, Game, InitialGame } from "../interfaces";
+import { LoginInfo, Game, InitialGame, TestGame } from "../interfaces";
 import { auth, db } from "../Firebase";
-import { getDoc, addDoc, setDoc, collection, doc } from "firebase/firestore";
+import { getDocs, getDoc, addDoc, setDoc, deleteDoc, collection, doc} from "firebase/firestore";
+import { DocumentReference } from "firebase/firestore";
 import { updatePassword } from "firebase/auth";
+
+type List = {
+    id: string,
+    game: Game,
+}
 
 
 const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
@@ -21,21 +27,23 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
 	const [newPasswordConfirmation, setNewPasswordConfirmation] = useState("");
 
     const [show, setShow] = useState(false);
-    const [DeleteGameID, setDeleteGameId] = useState<number | null>(null);
+    const [DeleteGameId, setDeleteGameId] = useState<string | null>(null);
+    const [DeleteGameIndex, setDeleteGameIndex] = useState<number | null>(null);
     
-    const [Games, setGames] = useState<Game[]>([]);
+    const [List, setList] = useState<List[]>([]);
+    
     useEffect(() => {
         (async () => {
-            const querySnapshot = await getDoc(doc(db, "games", logininfo.userid));
-            if (querySnapshot.exists()){
-                const games = await querySnapshot.data().games;
-                setGames(games);
-                console.log(games);
-            } else {
-                console.log("No such document")
-            }
+            const querySnapshot = await getDocs(collection(db, `users/${logininfo.userid}/games`));
+            const ret: List[] = [];
+            querySnapshot.forEach(doc => {
+                ret.push({id:doc.id, game:doc.data().game} as List);
+            });
+            setList(ret);
         })();
     }, [logininfo.userid]);
+	
+
 	
 	const onLogoutClick: React.MouseEventHandler<HTMLButtonElement> = async () => {
 		await auth.signOut();
@@ -57,36 +65,44 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
 
 
     const onNewGame = async() => {
-        const newGames = [...Games, InitialGame];
-        await setGames(newGames);
-        try {
-            const docRef = await setDoc(doc(db, "games", logininfo.userid), {
-                games: newGames
-            });
-            console.log("Document written with ID: ", logininfo.userid);
-        } catch (e) {
-            console.error("Error adding document: ", e);
-        }
+        const newGameRef = collection(db, `users/${logininfo.userid}/games`);
+        const newGame: Game = InitialGame;
+        const newGameAdd = await addDoc(newGameRef, { game: newGame });
+        setList([...List, {id:newGameAdd.id, game:newGame} as List]);
     }
 
+    // const onChange = async (e:any) => {
+    //     const Id = e.target.id;
+    //     const newTest = {
+    //         id: "",
+    //         name: "",
+    //         key1: "aaaa",
+    //         key2: "bbbb",
+    //     }
+    //     await setDoc(doc(db, `users/${logininfo.userid}/gamse`, Id), { game: newTest }, { merge: true });
+    //     setList(List.map((x, index) => {
+    //         if(x.id === Id) {
+    //             return {id:Id, game:newTest} as List;
+    //         }
+    //         return x;
+    //     }));
+    // }
 
-	const onDelete = async(e: any) => {
-        setDeleteGameId(Number(e.target.id));
+
+	const onDelete = (id: string, index: number) => {
+        setDeleteGameId(id);
+        setDeleteGameIndex(index);
         setShow(true);
     }
-    const onDeleteConfirm = async() => {
-        console.log(DeleteGameID);
-        const newGames = Games.filter((game, index) => (index !== DeleteGameID));
-        setGames(newGames);
-        try {
-            const docRef = setDoc(doc(db, "games", logininfo.userid), {
-                games: newGames
-            });
-        } catch (e) {
-            console.error("Error adding document: ", e);
+    const onDeleteConfirm = () => {
+        if (DeleteGameId !== null && DeleteGameIndex !== null) {
+            deleteDoc(doc(db, `users/${logininfo.userid}/games`, DeleteGameId));
+            setList(List.filter(x => x.id !== DeleteGameId));
         }
         setShow(false);
         setDeleteGameId(null);
+        setDeleteGameIndex(null);
+        console.log("deleted", DeleteGameId, DeleteGameIndex);
     }
 
 	const handleFormSubmission: React.FormEventHandler<HTMLFormElement> = (e) => {
@@ -116,7 +132,8 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
     const handleClose = () => setShow(false);
 
     const ConfirmDialog = () => {
-        if (DeleteGameID === null) {
+        console.log("DeleteGameIndex:", DeleteGameIndex);
+        if (DeleteGameId === null || DeleteGameIndex === null) {
             return null;
         } else {
             return(
@@ -125,9 +142,13 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                         <Modal.Title>消去確認</Modal.Title>
                     </Modal.Header>
                     <Modal.Body>
-                        ID : {DeleteGameID+1}<br/>
-                        {Games[DeleteGameID].year}年{Games[DeleteGameID].month}月{Games[DeleteGameID].day}日<br/>
-                        {Games[DeleteGameID].team_A} 対 {Games[DeleteGameID].team_B}の試合データを削除します。<br/>
+                        ID : {DeleteGameIndex+1}<br/>
+                        日付 : {List[DeleteGameIndex].game.year}年{List[DeleteGameIndex].game.month}月{List[DeleteGameIndex].game.day}日<br/>
+                        チームA : {List[DeleteGameIndex].game.team_A}<br/>
+                        チームB : {List[DeleteGameIndex].game.team_B}<br/>
+                        {/*
+                        */}
+                        の試合データを削除します。<br/>
                         データは完全に消去されます。<br/>
                         消去してもよろしいですか？
                     </Modal.Body>
@@ -142,6 +163,39 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                 </Modal>
             )
         }
+    }
+
+    // const onTest = () => {
+    //     try {
+    //         const docRef = updateDoc(doc(db, "games", logininfo.userid), {
+    //             games: Games
+    //         });
+    //         console.log("Document written with ID: ", logininfo.userid);
+    //     } catch (e) {
+    //         console.error("Error adding document: ", e);
+    //     }
+    //     console.log("onTest")
+    // }
+    //
+    const onTest = () => {
+        const newList = List;
+        newList.sort((a, b) => {
+            if (a.game.year === b.game.year) {
+                if (a.game.month === b.game.month) {
+                    return a.game.day - b.game.day;
+                } else {
+                    return a.game.month - b.game.month;
+                }
+            } else {
+                return a.game.year - b.game.year;
+            }
+        });
+        setList(newList);
+        console.log(newList)
+    }
+
+	const onEdit = (id: string, index: number) => {
+		history.push("/tool", List[index]);
     }
 
 	return (
@@ -162,31 +216,40 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                         <Button onClick={onNewGame}>
                                             NewGame
                                         </Button>
+                                        {/*
+                                        <Button onClick={onTest}>
+                                            test
+                                        </Button>
+                                        */}
                                     </Col>
                                     <Table striped bordered>
                                         <thead>
                                             <tr>
                                                 <th>ID</th>
-                                                <th>年月日</th>
-                                                <th>チーム</th>
+                                                <th>日付</th>
+                                                <th>チームA</th>
+                                                <th>チームB</th>
+                                                <th>スコア</th>
                                                 <th>Edit</th>
                                                 <th>Delete</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {Games.map((game, index) => {
+                                            {List.map((list, index) => {
                                                 return (
                                                     <tr>
                                                         <td>{index+1}</td>
-                                                        <td>{game.year}年{game.month}月{game.day}日</td>
-                                                        <td>{game.team_A}対{game.team_B}</td>
+                                                        <td>{list.game.year}年{list.game.month}月{list.game.day}日</td>
+                                                        <td>{list.game.team_A}</td>
+                                                        <td>{list.game.team_B}</td>
+                                                        <td>{0}-{0}</td>
                                                         <td>
-                                                            <Button>
+                                                            <Button id={list.id} onClick={() => onEdit(list.id,index)}>
                                                                 Edit
                                                             </Button>
                                                         </td>
                                                         <td>
-                                                            <Button id={String(index)} onClick={onDelete}>
+                                                            <Button id={list.id} onClick={() => onDelete(list.id,index)}>
                                                                 Delete
                                                             </Button>
                                                         </td>

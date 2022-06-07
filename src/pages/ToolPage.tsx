@@ -1,4 +1,4 @@
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 //import { Box, Grid } from "@mui/material";
 import Container from "react-bootstrap/Container";
 import Table from "react-bootstrap/Table";
@@ -8,16 +8,21 @@ import Col from "react-bootstrap/Col";
 import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
 import { Button, ButtonToolbar } from "react-bootstrap";
-import { Link , useHistory } from "react-router-dom";
+import { Link , useHistory, useLocation } from "react-router-dom";
 import { updatePassword } from "firebase/auth";
 
-import { LoginInfo, Point, Game } from "../interfaces";
+import { LoginInfo, Point, Game, Quarter } from "../interfaces";
 import { auth, db } from "../Firebase";
 import { collection, getDocs } from "firebase/firestore"
 
 interface Props {
     logininfo: LoginInfo;
     point: Point;
+}
+
+type List = {
+    id: string;
+    game: Game;
 }
 
 
@@ -34,13 +39,30 @@ const circle: number = 6.429
 
 const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
 	const history = useHistory();
-	const [newPassword, setNewPassword] = useState("");
-	const [newPasswordConfirmation, setNewPasswordConfirmation] = useState("");
-    // const [Edit, setEdit] = useState(true);
-    
-    const [teamA, setTeamA] = useState("");
-    const [teamB, setTeamB] = useState("");
 
+    const { state } = useLocation<List>();
+    // console.log(state.game)
+
+    const [key, setKey] = useState<string | null>("info");
+
+    // var quator = state.game.Q1;
+    // if (key === "info") {
+    //     quator =  state.game.Q1;
+    // } else if (key === "Q1") {
+    //     quator =  state.game.Q1;
+    // } else if (key === "Q2") {
+    //     quator =  state.game.Q2;
+    // } else if (key === "Q3") {
+    //     quator =  state.game.Q3;
+    // } else if (key === "Q4") {
+    //     quator =  state.game.Q4;
+    // } else if (key === "total") {
+    //     quator =  state.game.Q1;
+    // }
+    // console.log(quator.parameter)
+
+    const [Team_A, setTeam_A] = useState(state.game.team_A);
+    const [Team_B, setTeam_B] = useState(state.game.team_B);
     
     const [Point, setPoint] = useState<any[][]>([]);
     const [GoalorNot, setGoalorNot] = useState("Goal");
@@ -1114,7 +1136,11 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
 	if (logininfo.state == "signin") {
 		return (
 			<Container>
-                <Tabs>
+                <Tabs
+                    id="controlled-tab-example"
+                    defaultActiveKey="info"
+                    onSelect={(k) => {setKey(k)}}
+                >
                     <Tab eventKey="info" title="基本情報">
                         <Row className="my-1">
                             <Form>
@@ -1129,21 +1155,21 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                     <Form.Control
                                         type="text"
                                         placeholder="Team A"
-                                        value={teamA}
-                                        onChange={(e) => setTeamA(e.target.value)}
+                                        value={Team_A}
+                                        onChange={(e) => setTeam_A(e.target.value)}
                                     />
                                     <Form.Label>Team B</Form.Label>
                                     <Form.Control
                                         type="text"
                                         placeholder="Team B"
-                                        value={teamB}
-                                        onChange={(e) => setTeamB(e.target.value)}
+                                        value={Team_B}
+                                        onChange={(e) => setTeam_B(e.target.value)}
                                     />
                                 </Form.Group>
                             </Form>
                         </Row>
                     </Tab>
-                    <Tab eventKey="Q1" title="Q1">
+                    <Tab eventKey="q1" title="Q1">
 				        <Row className="gap-1">
                             <Coat Edit={true}/>
                             <ButtonToolbar className="gap-1">
@@ -1157,7 +1183,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                             <Result2/>
                         </Row>
                     </Tab>
-                    <Tab eventKey="Q2" title="Q2">
+                    <Tab eventKey="q2" title="Q2">
 				        <Row className="gap-1">
                             <Coat Edit={true}/>
                             <ButtonToolbar className="gap-1">
@@ -1171,7 +1197,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                             <Result2/>
                         </Row>
                     </Tab>
-                    <Tab eventKey="Q3" title="Q3">
+                    <Tab eventKey="q3" title="Q3">
 				        <Row className="gap-1">
                             <Coat Edit={true}/>
                             <ButtonToolbar className="gap-1">
@@ -1185,7 +1211,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                             <Result2/>
                         </Row>
                     </Tab>
-                    <Tab eventKey="Q4" title="Q4">
+                    <Tab eventKey="q4" title="Q4">
 				        <Row className="gap-1">
                             <Coat Edit={true}/>
                             <ButtonToolbar className="gap-1">
@@ -1199,7 +1225,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                             <Result2/>
                         </Row>
                     </Tab>
-                    <Tab eventKey="Total" title="Total">
+                    <Tab eventKey="total" title="Total">
 				        <Row className="gap-1">
                             <Coat Edit={false}/>
                             <Result/>

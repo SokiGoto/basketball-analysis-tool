@@ -43,20 +43,14 @@ export type Game = {
     year: number;
     month: number;
     day: number;
-    team_A: string;
-    team_B: string;
+    team_A?: string;
+    team_B?: string;
     Q1: Quarter;
     Q2: Quarter;
     Q3: Quarter;
     Q4: Quarter;
 }
 
-export const InitialPoint: Point = {
-    coor_x: 0,
-    coor_y: 0,
-    color: "",
-    point: 2
-}
 
 export const InitialParameter = {
     foul_A: 0,
@@ -88,6 +82,18 @@ export const InitialGame: Game = {
     year: 1990,
     month: 1,
     day: 1,
+    team_A: "",
+    team_B: "",
+    Q1: InitialQuarter,
+    Q2: InitialQuarter,
+    Q3: InitialQuarter,
+    Q4: InitialQuarter
+}
+
+export const TestGame: Game = {
+    year: 2022,
+    month: 6,
+    day: 6,
     team_A: "A",
     team_B: "B",
     Q1: InitialQuarter,

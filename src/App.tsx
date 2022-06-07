@@ -8,6 +8,7 @@ import SignupPage from "./pages/SignupPage";
 import PassResetPage from "./pages/PassResetPage";
 import ToolPage from "./pages/ToolPage";
 import MyPage from "./pages/MyPage";
+import Test from "./pages/Test";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import { auth } from "./Firebase";
@@ -57,6 +58,9 @@ function App() {
 					</Route>
 					<Route path="/passreset">
 						<PassResetPage />
+					</Route>
+					<Route path="/test">
+						<Test logininfo={loginInfo}/>
 					</Route>
 					<Route>
 						<NotFound/>
