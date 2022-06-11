@@ -11,6 +11,7 @@ export type Point = {
     coor_y: number;
     color: string;
     point: number;
+    team: string;
 };
 
 export type Parameter = {
@@ -40,11 +41,13 @@ export type Quarter = {
 }
 
 export type Game = {
-    year: number;
-    month: number;
-    day: number;
-    team_A?: string;
-    team_B?: string;
+    date: string;
+    place: string;
+    analyst: string;
+    team_A: string;
+    team_B: string;
+    score_A: number;
+    score_B: number;
     Q1: Quarter;
     Q2: Quarter;
     Q3: Quarter;
@@ -70,7 +73,7 @@ export const InitialParameter = {
     bs_A: 0,
     bs_B: 0,
     to_A: 0,
-    to_B: 0
+    to_B: 0,
 }
 
 export const InitialQuarter: Quarter = {
@@ -78,26 +81,23 @@ export const InitialQuarter: Quarter = {
     parameter: InitialParameter
 }
 
+const today = new Date();
+const year = today.getFullYear();
+const month = today.getMonth() + 1;
+const day = today.getDate();
+const date = String(year)+"-"+('00'+String(month)).slice(-2)+"-"+('00'+ String(day)).slice(-2);
+
 export const InitialGame: Game = {
-    year: 1990,
-    month: 1,
-    day: 1,
+    date: date,
     team_A: "",
     team_B: "",
+    score_A: 0,
+    score_B: 0,
+    analyst: "",
+    place: "",
     Q1: InitialQuarter,
     Q2: InitialQuarter,
     Q3: InitialQuarter,
     Q4: InitialQuarter
 }
 
-export const TestGame: Game = {
-    year: 2022,
-    month: 6,
-    day: 6,
-    team_A: "A",
-    team_B: "B",
-    Q1: InitialQuarter,
-    Q2: InitialQuarter,
-    Q3: InitialQuarter,
-    Q4: InitialQuarter
-}

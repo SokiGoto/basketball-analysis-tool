@@ -29,7 +29,7 @@ const Header: React.VFC<Props> = ({ loginInfo }) => {
       <Container>
         <Navbar>
           <Navbar.Brand>
-		    <Link to="/tool">
+		    <Link to="/">
 		      <img
 		        alt=""
 		        src={logo}

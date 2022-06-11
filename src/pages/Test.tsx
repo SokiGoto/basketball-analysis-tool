@@ -9,7 +9,7 @@ import Button from "react-bootstrap/Button";
 import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
 import { Link , useHistory } from "react-router-dom";
-import { LoginInfo, Game, InitialGame, TestGame } from "../interfaces";
+import { LoginInfo, Game, InitialGame} from "../interfaces";
 import { auth, db } from "../Firebase";
 import { getDocs, setDoc, addDoc, deleteDoc, collection, doc } from "firebase/firestore";
 import { DocumentReference } from "firebase/firestore";

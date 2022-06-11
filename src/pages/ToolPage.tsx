@@ -11,13 +11,12 @@ import { Button, ButtonToolbar } from "react-bootstrap";
 import { Link , useHistory, useLocation } from "react-router-dom";
 import { updatePassword } from "firebase/auth";
 
-import { LoginInfo, Point, Game, Quarter } from "../interfaces";
+import { LoginInfo, Game, InitialGame, Point, InitialParameter, Parameter} from "../interfaces";
 import { auth, db } from "../Firebase";
-import { collection, getDocs } from "firebase/firestore"
+import { setDoc, addDoc, doc, collection } from "firebase/firestore"
 
 interface Props {
     logininfo: LoginInfo;
-    point: Point;
 }
 
 type List = {
@@ -40,34 +39,28 @@ const circle: number = 6.429
 const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
 	const history = useHistory();
 
+    const [list, setList] = useState<List>({id: "", game: InitialGame});
     const { state } = useLocation<List>();
-    // console.log(state.game)
 
-    const [key, setKey] = useState<string | null>("info");
-
-    // var quator = state.game.Q1;
-    // if (key === "info") {
-    //     quator =  state.game.Q1;
-    // } else if (key === "Q1") {
-    //     quator =  state.game.Q1;
-    // } else if (key === "Q2") {
-    //     quator =  state.game.Q2;
-    // } else if (key === "Q3") {
-    //     quator =  state.game.Q3;
-    // } else if (key === "Q4") {
-    //     quator =  state.game.Q4;
-    // } else if (key === "total") {
-    //     quator =  state.game.Q1;
-    // }
-    // console.log(quator.parameter)
-
-    const [Team_A, setTeam_A] = useState(state.game.team_A);
-    const [Team_B, setTeam_B] = useState(state.game.team_B);
+    const [key, setKey] = useState<string>("info");
+    const [Edit, setEdit] = useState<boolean>(false);
     
-    const [Point, setPoint] = useState<any[][]>([]);
+    useEffect(() => {
+        if (state !== undefined) {
+            setList(state);
+            setEdit(false);
+        } else {
+            setList({id: "", game: InitialGame});
+            setEdit(true);
+        }
+    }, [state]);
+
+    console.log("list",list)
+    
+    const [Point, setPoint] = useState<Point[]>([]);
     const [GoalorNot, setGoalorNot] = useState("Goal");
     const [GoalRate, setGoalRate] = useState(0);
-    const [Goal, setGoal] = useState(0);
+
     const [NotGoal, setNotGoal] = useState(0);
 
     const [FGPA, setFGPA] = useState(0);
@@ -84,106 +77,105 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
     const [FG2AB, setFG2AB] = useState(0);
     const [FG3AA, setFG3AA] = useState(0);
     const [FG3AB, setFG3AB] = useState(0);
-    const [FTMA, setFTMA] = useState(0);
-    const [FTAA, setFTAA] = useState(0);
-    const [FTMB, setFTMB] = useState(0);
-    const [FTAB, setFTAB] = useState(0);
-    const [FOULA, setFOULA] = useState(0);
-    const [FOULB, setFOULB] = useState(0);
-    const [BSA, setBSA] = useState(0);
-    const [BSB, setBSB] = useState(0);
-    const [TOA, setTOA] = useState(0);
-    const [TOB, setTOB] = useState(0);
-    const [ASSISTA, setASSISTA] = useState(0);
-    const [ASSISTB, setASSISTB] = useState(0);
-    const [STEALA, setSTEALA] = useState(0);
-    const [STEALB, setSTEALB] = useState(0);
-    const [REBOUND_DA, setREBOUND_DA] = useState(0);
-    const [REBOUND_OA, setREBOUND_OA] = useState(0);
-    const [REBOUND_DB, setREBOUND_DB] = useState(0);
-    const [REBOUND_OB, setREBOUND_OB] = useState(0);
-
+    
 
     useEffect(() => {
-        var Goal = 0;
-        var NotGoal = 0;
-        var FGPA_tmp = 0;
-        var FGPB_tmp = 0;
-        var FGMA_tmp = 0;
-        var FGAA_tmp = 0;
-        var FGMB_tmp = 0;
-        var FGAB_tmp = 0;
-        var FG2MA_tmp = 0;
-        var FG2AA_tmp = 0;
-        var FG2MB_tmp = 0;
-        var FG2AB_tmp = 0;
-        var FG3MA_tmp = 0;
-        var FG3AA_tmp = 0;
-        var FG3MB_tmp = 0;
-        var FG3AB_tmp = 0;
+        if (key === "Q1" || key === "Q2" || key === "Q3" || key === "Q4" || key === "total") {
+            var FGPA_tmp = 0;
+            var FGPB_tmp = 0;
+            var FGMA_tmp = 0;
+            var FGAA_tmp = 0;
+            var FGMB_tmp = 0;
+            var FGAB_tmp = 0;
+            var FG2MA_tmp = 0;
+            var FG2AA_tmp = 0;
+            var FG2MB_tmp = 0;
+            var FG2AB_tmp = 0;
+            var FG3MA_tmp = 0;
+            var FG3AA_tmp = 0;
+            var FG3MB_tmp = 0;
+            var FG3AB_tmp = 0;
 
-        Point.map((point, index) => {
-            point[2] === "red" ? Goal++ : NotGoal++;
-            if (point[0] < 50) {
-                if (point[3] === 3){
-                    if (point[2] === "red"){
-                        FGMA_tmp++;
-                        FG3MA_tmp++;
-                        FGPA_tmp=FGPA_tmp+3;
-                    }
-                    FGAA_tmp++;
-                    FG3AA_tmp++;
-                } else if (point[3] === 2){
-                    if (point[2] === "red"){
-                        FGMA_tmp++;
-                        FG2MA_tmp++;
-                        FGPA_tmp=FGPA_tmp+2;
-                    }
-                    FGAA_tmp++;
-                    FG2AA_tmp++;
-                }
-            } else {
-                if (point[3] === 3){
-                    if (point[2] === "red"){
-                        FGMB_tmp++;
-                        FG3MB_tmp++;
-                        FGPB_tmp=FGPB_tmp+3;
-                    }
-                    FGAB_tmp++;
-                    FG3AB_tmp++;
-                } else if (point[3] === 2){
-                    if (point[2] === "red"){
-                        FGMB_tmp++;
-                        FG2MB_tmp++;
-                        FGPB_tmp=FGPB_tmp+2;
-                    }
-                    FGAB_tmp++;
-                    FG2AB_tmp++;
-                }
+            var quator: Point[] = [];
+            if (key === "Q1" || key === "total") {
+                quator = quator.concat(list.game.Q1.point);
             }
-        });
-        setGoalRate(Goal/(Goal+NotGoal)*100);
-        setGoal(Goal);
-        setNotGoal(NotGoal);
-        setFGPA(FGPA_tmp);
-        setFGPB(FGPB_tmp);
-        setFGMA(FGMA_tmp);
-        setFGAA(FGAA_tmp);
-        setFGMB(FGMB_tmp);
-        setFGAB(FGAB_tmp);
-        setFG2MA(FG2MA_tmp);
-        setFG2AA(FG2AA_tmp);
-        setFG2MB(FG2MB_tmp);
-        setFG2AB(FG2AB_tmp);
-        setFG3MA(FG3MA_tmp);
-        setFG3AA(FG3AA_tmp);
-        setFG3MB(FG3MB_tmp);
-        setFG3AB(FG3AB_tmp);
-    }, [Point]);
+            if (key === "Q2" || key === "total") {
+                quator = quator.concat(list.game.Q2.point);
+            }
+            if (key === "Q3" || key === "total") {
+                quator = quator.concat(list.game.Q3.point);
+            }
+            if (key === "Q4" || key === "total") {
+                quator = quator.concat(list.game.Q4.point);
+            }
+
+            setPoint(quator);
+
+            quator.map((point, index) => {
+                if (point.team === "A") {
+                    if (point.point === 3){
+                        if (point.color === "red"){
+                            FGMA_tmp++;
+                            FG3MA_tmp++;
+                            FGPA_tmp=FGPA_tmp+3;
+                        }
+                        FGAA_tmp++;
+                        FG3AA_tmp++;
+                    } else if (point.point === 2){
+                        if (point.color === "red"){
+                            FGMA_tmp++;
+                            FG2MA_tmp++;
+                            FGPA_tmp=FGPA_tmp+2;
+                        }
+                        FGAA_tmp++;
+                        FG2AA_tmp++;
+                    }
+                } else if (point.team === "B") {
+                    if (point.point === 3){
+                        if (point.color === "red"){
+                            FGMB_tmp++;
+                            FG3MB_tmp++;
+                            FGPB_tmp=FGPB_tmp+3;
+                        }
+                        FGAB_tmp++;
+                        FG3AB_tmp++;
+                    } else if (point.point === 2){
+                        if (point.color === "red"){
+                            FGMB_tmp++;
+                            FG2MB_tmp++;
+                            FGPB_tmp=FGPB_tmp+2;
+                        }
+                        FGAB_tmp++;
+                        FG2AB_tmp++;
+                    }
+                }
+            });
+            setFGPA(FGPA_tmp);
+            setFGPB(FGPB_tmp);
+            setFGMA(FGMA_tmp);
+            setFGAA(FGAA_tmp);
+            setFGMB(FGMB_tmp);
+            setFGAB(FGAB_tmp);
+            setFG2MA(FG2MA_tmp);
+            setFG2AA(FG2AA_tmp);
+            setFG2MB(FG2MB_tmp);
+            setFG2AB(FG2AB_tmp);
+            setFG3MA(FG3MA_tmp);
+            setFG3AA(FG3AA_tmp);
+            setFG3MB(FG3MB_tmp);
+            setFG3AB(FG3AB_tmp);
+        }
+    }, [list, key]);
+
+
 
 	
 
     const handleClick = (event: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
+        if (key !== "Q1" && key !== "Q2" && key !== "Q3" && key !== "Q4") {
+            return;
+        }
         const svg = event.currentTarget
         const pt = svg.createSVGPoint()
         
@@ -194,10 +186,10 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
         const ctm = svg.getScreenCTM()
         if (ctm) {
             const cursorPt = pt.matrixTransform(ctm.inverse())
-            console.log(cursorPt.x, cursorPt.y);
+            var color: string = ""
+            var point: number = 3
+            var team: string = ""
             if (cursorPt.x > 50) {
-                var color: string = ""
-                var point: number = 3
                 if ((cursorPt.x - (width - goal))**2 + (cursorPt.y - height/2)**2 <= tpl**2
                     && cursorPt.x <= width - tplsw
                     || cursorPt.x > width-tplsw 
@@ -206,16 +198,20 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                     && cursorPt.y < height - tpls){
                     point = 2
                 }
+                
+                if (key === "Q1" || key === "Q2") {
+                    team = "B"
+                } else if (key === "Q3" || key === "Q4") {
+                    team = "A"
+                }
+
                 if (GoalorNot === "Goal") {
                     color = "red"
                 } else if (GoalorNot === "NotGoal") {
                     color = "blue"
                 }
-                setPoint([...Point, [cursorPt.x, cursorPt.y, color, point]])
-                console.log("=>", cursorPt.x, cursorPt.y, color, point)
+                // console.log("=>", cursorPt.x, cursorPt.y, color, point, team)
             } else {
-                var color: string = ""
-                var point: number = 3
                 if ((cursorPt.x - goal)**2 + (cursorPt.y - height/2)**2 <= tpl**2
                     && cursorPt.x >= tplsw
                     || cursorPt.x > 0
@@ -224,17 +220,31 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                     && cursorPt.y < height - tpls){
                     point = 2
                 }
+
+                if (key === "Q1" || key === "Q2") {
+                    team = "A"
+                } else if (key === "Q3" || key === "Q4") {
+                    team = "B"
+                }
+
                 if (GoalorNot === "Goal") {
                     color = "red"
                 } else if (GoalorNot === "NotGoal") {
                     color = "blue"
                 }
-                setPoint([...Point, [cursorPt.x, cursorPt.y, color, point]])
-                console.log("<=", cursorPt.x, cursorPt.y, color, point)
+                // console.log("<=", cursorPt.x, cursorPt.y, color, point, team)
             }
+            setList(
+                {...list, game: {
+                    ...list.game, [key]: {
+                        ...list.game[key], point: [
+                            ...list.game[key].point, {coor_x: cursorPt.x, coor_y: cursorPt.y, color: color, point: point, team: team}
+                        ]
+                    }
+                }}
+            )
         }
     }
-    
     const onGoal = () => {
         setGoalorNot("Goal");
     }
@@ -244,112 +254,291 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
     }
 
     const onBack = () => {
-        setPoint(
-            Point.filter((point, index) => (index !== Point.length - 1))
-        );
+        if (key !== "Q1" && key !== "Q2" && key !== "Q3" && key !== "Q4") {
+            return;
+        }
+        setList(
+            {...list, game: {
+                ...list.game, [key]: {
+                    ...list.game[key], point: list.game[key].point.filter(
+                        (point, index) => (index !== list.game[key].point.length - 1))
+                }
+            }
+        })
     }
 
     const onClear = () => {
-        setPoint([]);
+        if (key !== "Q1" && key !== "Q2" && key !== "Q3" && key !== "Q4") {
+            return;
+        }
+        setList(
+            {...list, game: {
+                ...list.game, [key]: {
+                    ...list.game[key], point: []
+                }
+            }
+        })
         setFGPA(0);
         setFGPB(0);
-        setFTMA(0);
-        setFTMB(0);
-        setFTAA(0);
-        setFTAB(0);
-
-        setFOULA(0);
-        setFOULB(0);
-        setASSISTA(0);
-        setASSISTB(0);
-        setSTEALA(0);
-        setSTEALB(0);
-        setBSA(0);
-        setBSB(0);
-        setTOA(0);
-        setTOB(0);
-
-        setREBOUND_DA(0);
-        setREBOUND_DB(0);
-        setREBOUND_OA(0);
-        setREBOUND_OB(0);
     }
 
     const onCnt = (e: any) => {
+        if (key !== "Q1" && key !== "Q2" && key !== "Q3" && key !== "Q4") {
+            return;
+        }
         const id = e.currentTarget.id;
-        console.log(id);
         if (id === "foulAM") {
-            setFOULA(Math.max(FOULA - 1, 0));
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                foul_A: Math.max(list.game[key].parameter.foul_A - 1, 0)}}}});
         } else if (id === "foulAP") {
-            setFOULA(FOULA + 1);
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                foul_A: list.game[key].parameter.foul_A + 1}}}});
         } else if (id === "foulBM") {
-            setFOULB(Math.max(FOULB - 1, 0));
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                foul_B: Math.max(list.game[key].parameter.foul_B - 1, 0)}}}});
         } else if (id === "foulBP") {
-            setFOULB(FOULB + 1);
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                foul_B: list.game[key].parameter.foul_B + 1}}}});
         } else if (id === "bsAM") {
-            setBSA(Math.max(BSA - 1, 0));
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                bs_A: Math.max(list.game[key].parameter.bs_A - 1, 0)}}}});
         } else if (id === "bsAP") {
-            setBSA(BSA + 1);
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                bs_A: list.game[key].parameter.bs_A + 1}}}});
         } else if (id === "bsBM") {
-            setBSB(Math.max(BSB - 1, 0));
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                bs_B: Math.max(list.game[key].parameter.bs_B - 1, 0)}}}});
         } else if (id === "bsBP") {
-            setBSB(BSB + 1);
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                bs_B: list.game[key].parameter.bs_B + 1}}}});
         } else if (id === "toAM") {
-            setTOA(Math.max(TOA - 1, 0));
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                to_A: Math.max(list.game[key].parameter.to_A - 1, 0)}}}});
         } else if (id === "toAP") {
-            setTOA(TOA + 1);
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                to_A: list.game[key].parameter.to_A + 1}}}});
         } else if (id === "toBM") {
-            setTOB(Math.max(TOB - 1, 0));
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                to_B: Math.max(list.game[key].parameter.to_B - 1, 0)}}}});
         } else if (id === "toBP") {
-            setTOB(TOB + 1);
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                to_B: list.game[key].parameter.to_B + 1}}}});
         } else if (id === "ftMAM") {
-            setFTMA(Math.max(FTMA - 1, 0));
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                ft_SA: Math.max(list.game[key].parameter.ft_SA - 1, 0)}}}});
         } else if (id === "ftMAP") {
-            setFTMA(FTMA + 1);
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                ft_SA: list.game[key].parameter.ft_SA + 1}}}});
         } else if (id === "ftMBM") {
-            setFTMB(Math.max(FTMB - 1, 0));
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                ft_SB: Math.max(list.game[key].parameter.ft_SB - 1, 0)}}}});
         } else if (id === "ftMBP") {
-            setFTMB(FTMB + 1);
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                ft_SB: list.game[key].parameter.ft_SB + 1}}}});
         } else if (id === "ftAAM") {
-            setFTAA(Math.max(FTAA - 1, 0));
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                ft_FA: Math.max(list.game[key].parameter.ft_FA - 1, 0)}}}});
         } else if (id === "ftAAP") {
-            setFTAA(FTAA + 1);
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                ft_FA: list.game[key].parameter.ft_FA + 1}}}});
         } else if (id === "ftABM") {
-            setFTAB(Math.max(FTAB - 1, 0));
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                ft_FB: Math.max(list.game[key].parameter.ft_FB - 1, 0)}}}});
         } else if (id === "ftABP") {
-            setFTAB(FTAB + 1);
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                ft_FB: list.game[key].parameter.ft_FB + 1}}}});
         } else if (id === "assistAM") {
-            setASSISTA(Math.max(ASSISTA - 1, 0));
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                assist_A: Math.max(list.game[key].parameter.assist_A - 1, 0)}}}});
         } else if (id === "assistAP") {
-            setASSISTA(ASSISTA + 1);
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                assist_A: list.game[key].parameter.assist_A + 1}}}});
         } else if (id === "assistBM") {
-            setASSISTB(Math.max(ASSISTB - 1, 0));
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                assist_B: Math.max(list.game[key].parameter.assist_B - 1, 0)}}}});
         } else if (id === "assistBP") {
-            setASSISTB(ASSISTB + 1);
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                assist_B: list.game[key].parameter.assist_B + 1}}}});
         } else if (id === "stealAM") {
-            setSTEALA(Math.max(STEALA - 1, 0));
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                steal_A: Math.max(list.game[key].parameter.steal_A - 1, 0)}}}});
         } else if (id === "stealAP") {
-            setSTEALA(STEALA + 1);
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                steal_A: list.game[key].parameter.steal_A + 1}}}});
         } else if (id === "stealBM") {
-            setSTEALB(Math.max(STEALB - 1, 0));
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                steal_B: Math.max(list.game[key].parameter.steal_B - 1, 0)}}}});
         } else if (id === "stealBP") {
-            setSTEALB(STEALB + 1);
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                steal_B: list.game[key].parameter.steal_B + 1}}}});
         } else if (id === "reboundDAM") {
-            setREBOUND_DA(Math.max(REBOUND_DA - 1, 0));
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                rebound_DA: Math.max(list.game[key].parameter.rebound_DA - 1, 0)}}}});
         } else if (id === "reboundDAP") {
-            setREBOUND_DA(REBOUND_DA + 1);
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                rebound_DA: list.game[key].parameter.rebound_DA + 1}}}});
         } else if (id === "reboundOAM") {
-            setREBOUND_OA(Math.max(REBOUND_OA - 1, 0));
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                rebound_OA: Math.max(list.game[key].parameter.rebound_OA - 1, 0)}}}});
         } else if (id === "reboundOAP") {
-            setREBOUND_OA(REBOUND_OA + 1);
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                rebound_OA: list.game[key].parameter.rebound_OA + 1}}}});
         } else if (id === "reboundDBM") {
-            setREBOUND_DB(Math.max(REBOUND_DB - 1, 0));
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                rebound_DB: Math.max(list.game[key].parameter.rebound_DB - 1, 0)}}}});
         } else if (id === "reboundDBP") {
-            setREBOUND_DB(REBOUND_DB + 1);
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                rebound_DB: list.game[key].parameter.rebound_DB + 1}}}});
         } else if (id === "reboundOBM") {
-            setREBOUND_OB(Math.max(REBOUND_OB - 1, 0));
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                rebound_OB: Math.max(list.game[key].parameter.rebound_OB - 1, 0)}}}});
         } else if (id === "reboundOBP") {
-            setREBOUND_OB(REBOUND_OB + 1);
+            setList(
+                {...list,
+                    game: {...list.game,
+                        [key]: {...list.game[key],
+                            parameter: {...list.game[key].parameter,
+                                rebound_OB: list.game[key].parameter.rebound_OB + 1}}}});
         } else {
             console.log("error");
         }
@@ -357,8 +546,290 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
     }
 
 
+    const onSave = () => {
+        var score_A = 0;
+        var score_B = 0;
+        score_A += list.game.Q1.parameter.ft_SA;
+        score_A += list.game.Q2.parameter.ft_SA;
+        score_A += list.game.Q3.parameter.ft_SA;
+        score_A += list.game.Q4.parameter.ft_SA;
+        score_B += list.game.Q1.parameter.ft_SB;
+        score_B += list.game.Q2.parameter.ft_SB;
+        score_B += list.game.Q3.parameter.ft_SB;
+        score_B += list.game.Q4.parameter.ft_SB;
+        list.game.Q1.point.map((point) => {
+            if (point.team === "A" && point.color === "red") {
+                score_A += point.point;
+            } else if (point.team === "B" && point.color === "red") {
+                score_B += point.point;
+            }
+        });
+        list.game.Q2.point.map((point) => {
+            if (point.team === "A" && point.color === "red") {
+                score_A += point.point;
+            } else if (point.team === "B" && point.color === "red") {
+                score_B += point.point;
+            }
+        });
+        list.game.Q3.point.map((point) => {
+            if (point.team === "A" && point.color === "red") {
+                score_A += point.point;
+            } else if (point.team === "B" && point.color === "red") {
+                score_B += point.point;
+            }
+        });
+        list.game.Q4.point.map((point) => {
+            if (point.team === "A" && point.color === "red") {
+                score_A += point.point;
+            } else if (point.team === "B" && point.color === "red") {
+                score_B += point.point;
+            }
+        });
+        if (list.id === "") {
+            (async () => {
+                const newGameRef = await collection(db, `users/${logininfo.userid}/games`);
+                const newGameAdd = await addDoc(newGameRef,
+                                                { game: {...list.game, score_A: score_A, score_B: score_B} })
+                .then((e) => {
+                    setList({id: e.id, game: {...list.game, score_A: score_A, score_B: score_B}});
+                    setEdit(false);
+                    alert("保存しました");
+                });
+            })();
+        } else {
+            setDoc(doc(db, `users/${logininfo.userid}/games`, list.id),
+                   { game: {...list.game, score_A: score_A, score_B: score_B} }, { merge: true })
+            .then(() => {
+                setEdit(false);
+                alert("保存しました");
+            })
+            .catch(() => {
+                alert("保存に失敗しました");
+            });
+        }
+    }
 
-    const Coat:React.VFC<{Edit: boolean}> = ({Edit}) => {
+    const onView = () => {
+        setEdit(false);
+    }
+
+    const onEdit = () => {
+        setEdit(true);
+    }
+    
+    const ViewSave = () => {
+        if (Edit) {
+            return (
+                <Row>
+                    <Col>
+                        <Button onClick={onSave}>保存</Button>
+                        {/*
+                        <Button onClick={onView}>View</Button>
+                        */}
+                    </Col>
+                </Row>
+            )
+        } else {
+            return (
+                <Row>
+                    <Col>
+                        <Button onClick={onEdit}>編集</Button>
+                    </Col>
+                </Row>
+            )
+        }
+
+    }
+
+    const Label = () => {
+        if (key === "Q1" || key === "Q2") {
+            return(
+                <Row>
+                    <Col xs={6}>
+                        <h4>A : {list.game.team_A}</h4>
+                    </Col>
+                    <Col xs={6}>
+                        <h4>B : {list.game.team_B}</h4>
+                    </Col>
+                </Row>
+            )
+        } else if (key === "Q3" || key === "Q4") {
+            return(
+                <Row>
+                    <Col xs={6}>
+                        <h4>B : {list.game.team_B}</h4>
+                    </Col>
+                    <Col xs={6}>
+                        <h4>A : {list.game.team_A}</h4>
+                    </Col>
+                </Row>
+            )
+        } else {
+            return null;
+        }
+    }
+
+
+    const Coat = () => {
+        if (key !== "Q1" && key !== "Q2" && key !== "Q3" && key !== "Q4" && key !== "total") {
+            return null
+        }
+        if (key === "total") {
+            return (
+                <>
+                    <Row>
+                        <Col xs={6}>
+                            <h4>A : {list.game.team_A}</h4>
+                        </Col>
+                    </Row>
+                    <svg id="coart" width="100%" height="100%" viewBox={`0 0 100 ${height}`}>
+                        <rect x="0" y="0" width={width} height={height} fill="#AB5239"/>
+                        <line x1="0" y1="0" x2="0" y2={height} stroke="#000" strokeWidth="1"/>
+                        <line x1={width} y1="0" x2={width} y2={height} stroke="#000" strokeWidth="1"/>
+                        <line x1="0" y1="0" x2={width} y2="0" stroke="#000" strokeWidth="1"/>
+                        <line x1="0" y1={height} x2={width} y2={height} stroke="#000" strokeWidth="1"/>
+                        {/*center line and center circle*/}
+                        <line x1={width/2} y1="0" x2={width/2} y2={height} stroke="#000" strokeWidth="0.5"/>
+                        <circle cx={width/2} cy={height/2} r={circle} stroke="#000" strokeWidth="0.5" fill="none"/>
+                        
+                        {/*left coart*/}
+                        <rect
+                            x="0" y={(height - gbh)/2}
+                            width={gbw} height={gbh}
+                            stroke="#000" strokeWidth="0.5"
+                            fill="none" 
+                        />
+                        <path 
+                            d={`M${gbw},${height/2}
+                                L${gbw},${height/2-circle}
+                                A${circle},${circle} 0 0,1 
+                                ${gbw},${height/2 + circle}z`}
+                            fill="#AB5239"
+                            stroke="black"
+                            strokeWidth="0.5"
+                        />
+                        <path
+                            d={`M0,${tpls}
+                                L${tplsw},${tpls}
+                                A${tpl},${tpl} 0 0,1
+                                ${tplsw},${height-tpls}
+                                L0,${height-tpls}z`}
+                            fill="none"
+                            stroke="black"
+                            strokeWidth="0.5"
+                        />
+                        {/*right coart*/}
+                        <rect
+                            x={width - gbw} y={(height - gbh)/2}
+                            width={gbw} height={gbh}
+                            stroke="#000" strokeWidth="0.5"
+                            fill="none" 
+                        />
+                        <path 
+                            d={`M${width-gbw},${height/2}
+                                L${width-gbw},${height/2-circle}
+                                A${circle},${circle} 0 0,0 
+                                ${width-gbw},${height/2 + circle}z`}
+                            fill="#AB5239"
+                            stroke="black"
+                            strokeWidth="0.5"
+                        />
+                        <path
+                            d={`M${width},${tpls}
+                                L${width-tplsw},${tpls}
+                                A${tpl},${tpl} 0 0,0
+                                ${width-tplsw},${height-tpls}
+                                L${width},${height-tpls}z`}
+                            fill="none"
+                            stroke="black"
+                            strokeWidth="0.5"
+                        />
+                        {Point.map((point, index) => {
+                            if (point.team === "A") {
+                                return <circle cx={point.coor_x} cy={point.coor_y} r="1" fill={point.color} />
+                            } else {
+                                return null;
+                            }
+                        })}
+                    </svg>
+                    <Row>
+                        <Col xs={6}>
+                            <h4>B : {list.game.team_B}</h4>
+                        </Col>
+                    </Row>
+                    <svg id="coart" width="100%" height="100%" viewBox={`0 0 100 ${height}`}>
+                        <rect x="0" y="0" width={width} height={height} fill="#AB5239"/>
+                        <line x1="0" y1="0" x2="0" y2={height} stroke="#000" strokeWidth="1"/>
+                        <line x1={width} y1="0" x2={width} y2={height} stroke="#000" strokeWidth="1"/>
+                        <line x1="0" y1="0" x2={width} y2="0" stroke="#000" strokeWidth="1"/>
+                        <line x1="0" y1={height} x2={width} y2={height} stroke="#000" strokeWidth="1"/>
+                        {/*center line and center circle*/}
+                        <line x1={width/2} y1="0" x2={width/2} y2={height} stroke="#000" strokeWidth="0.5"/>
+                        <circle cx={width/2} cy={height/2} r={circle} stroke="#000" strokeWidth="0.5" fill="none"/>
+                        
+                        {/*left coart*/}
+                        <rect
+                            x="0" y={(height - gbh)/2}
+                            width={gbw} height={gbh}
+                            stroke="#000" strokeWidth="0.5"
+                            fill="none" 
+                        />
+                        <path 
+                            d={`M${gbw},${height/2}
+                                L${gbw},${height/2-circle}
+                                A${circle},${circle} 0 0,1 
+                                ${gbw},${height/2 + circle}z`}
+                            fill="#AB5239"
+                            stroke="black"
+                            strokeWidth="0.5"
+                        />
+                        <path
+                            d={`M0,${tpls}
+                                L${tplsw},${tpls}
+                                A${tpl},${tpl} 0 0,1
+                                ${tplsw},${height-tpls}
+                                L0,${height-tpls}z`}
+                            fill="none"
+                            stroke="black"
+                            strokeWidth="0.5"
+                        />
+                        {/*right coart*/}
+                        <rect
+                            x={width - gbw} y={(height - gbh)/2}
+                            width={gbw} height={gbh}
+                            stroke="#000" strokeWidth="0.5"
+                            fill="none" 
+                        />
+                        <path 
+                            d={`M${width-gbw},${height/2}
+                                L${width-gbw},${height/2-circle}
+                                A${circle},${circle} 0 0,0 
+                                ${width-gbw},${height/2 + circle}z`}
+                            fill="#AB5239"
+                            stroke="black"
+                            strokeWidth="0.5"
+                        />
+                        <path
+                            d={`M${width},${tpls}
+                                L${width-tplsw},${tpls}
+                                A${tpl},${tpl} 0 0,0
+                                ${width-tplsw},${height-tpls}
+                                L${width},${height-tpls}z`}
+                            fill="none"
+                            stroke="black"
+                            strokeWidth="0.5"
+                        />
+                        {Point.map((point, index) => {
+                            if (point.team === "B") {
+                                return <circle cx={point.coor_x} cy={point.coor_y} r="1" fill={point.color} />
+                            } else {
+                                return null;
+                            }
+                        })}
+                    </svg>
+                </>
+            )
+        }
         if (Edit){
             return (
                 <svg id="coart" width="100%" height="100%" viewBox={`0 0 100 ${height}`} onClick={handleClick}>
@@ -443,8 +914,8 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                     */}
 
 
-                    {Point.map((coor, index) => {
-                        return <circle cx={coor[0]} cy={coor[1]} r="1" fill={coor[2]} />
+                    {Point.map((point, index) => {
+                        return <circle cx={point.coor_x} cy={point.coor_y} r="1" fill={point.color} />
                     })}
                 </svg>
             )
@@ -524,15 +995,38 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                         stroke="black"
                         strokeWidth="0.5"
                     />
-                    {Point.map((coor, index) => {
-                        return <circle cx={coor[0]} cy={coor[1]} r="1" fill={coor[2]} />
+                    {Point.map((point, index) => {
+                        return <circle cx={point.coor_x} cy={point.coor_y} r="1" fill={point.color} />
                     })}
                 </svg>
             )
         }
     }
+    const GoalButtons = () => {
+        if (key !== "Q1" && key !== "Q2" && key !== "Q3" && key !== "Q4") {
+            return null
+        }
+        if (Edit) {
+            return (
+                <ButtonToolbar className="gap-1">
+                    <Button onClick={onGoal}>Goal</Button>
+                    <Button onClick={onNotGoal}>Not Goal</Button>
+                    <Button onClick={onBack}>Back</Button>
+                    <Button onClick={onClear}>All clear</Button>
+                </ButtonToolbar>
+            )
+        } else {
+            return null
+        }
+    }
 
     const Counter = () => {
+        if (key !== "Q1" && key !== "Q2" && key !== "Q3" && key !== "Q4") {
+            return null
+        }
+        if (! Edit) {
+            return null
+        }
         return (
             <Col>
                 <Row>
@@ -599,7 +1093,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                 </Col>
                                 <Col className="mx-0 px-1">
                                     <span className="number">
-                                        {FOULA}
+                                        {list.game[key].parameter.foul_A}
                                     </span>
                                 </Col>
                                 <Col className="mx-0 px-1">
@@ -621,7 +1115,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                 </Col>
                                 <Col className="mx-0 px-1">
                                     <span className="number">
-                                        {FOULB}
+                                        {list.game[key].parameter.foul_B}
                                     </span>
                                 </Col>
                                 <Col className="mx-0 px-1">
@@ -650,7 +1144,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                 </Col>
                                 <Col className="mx-0 px-1">
                                     <span className="number">
-                                        {ASSISTA}
+                                        {list.game[key].parameter.assist_A}
                                     </span>
                                 </Col>
                                 <Col className="mx-0 px-1">
@@ -672,7 +1166,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                 </Col>
                                 <Col className="mx-0 px-1">
                                     <span className="number">
-                                        {ASSISTB}
+                                        {list.game[key].parameter.assist_B}
                                     </span>
                                 </Col>
                                 <Col className="mx-0 px-1">
@@ -701,7 +1195,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                 </Col>
                                 <Col className="mx-0 px-1">
                                     <span className="number">
-                                        {STEALA}
+                                        {list.game[key].parameter.steal_A}
                                     </span>
                                 </Col>
                                 <Col className="mx-0 px-1">
@@ -723,7 +1217,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                 </Col>
                                 <Col className="mx-0 px-1">
                                     <span className="number">
-                                        {STEALB}
+                                        {list.game[key].parameter.steal_B}
                                     </span>
                                 </Col>
                                 <Col className="mx-0 px-1">
@@ -745,7 +1239,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                             <Col><span>A</span></Col>
                             <Row className="p-1">
                                 <Col className="mx-0 px-1">
-                                    <span className="AB">M</span>
+                                    <span className="AB">成</span>
                                 </Col>
                                 <Col className="mx-0 px-1">
                                     <Button
@@ -755,7 +1249,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                 </Col>
                                 <Col className="mx-0 px-1">
                                     <span className="number">
-                                    {FTMA}
+                                    {list.game[key].parameter.ft_SA}
                                     </span>
                                 </Col>
                                 <Col className="mx-0 px-1">
@@ -767,7 +1261,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                             </Row>
                             <Row className="p-1">
                                 <Col className="mx-0 px-1">
-                                    <span className="AB">A</span>
+                                    <span className="AB">失</span>
                                 </Col>
                                 <Col className="mx-0 px-1">
                                     <Button
@@ -777,7 +1271,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                 </Col>
                                 <Col className="mx-0 px-1">
                                     <span className="number">
-                                        {FTAA}
+                                        {list.game[key].parameter.ft_FA}
                                     </span>
                                 </Col>
                                 <Col className="mx-0 px-1">
@@ -790,7 +1284,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                             <span className="AB">B</span>
                             <Row className="p-1">
                                 <Col className="mx-0 px-1">
-                                    <span className="AB">M</span>
+                                    <span className="AB">成</span>
                                 </Col>
                                 <Col className="mx-0 px-1">
                                     <Button
@@ -800,7 +1294,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                 </Col>
                                 <Col className="mx-0 px-1">
                                     <span className="number">
-                                        {FTMB}
+                                        {list.game[key].parameter.ft_SB}
                                     </span>
                                 </Col>
                                 <Col className="mx-0 px-1">
@@ -812,7 +1306,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                             </Row>
                             <Row className="p-1">
                                 <Col className="mx-0 px-1">
-                                    <span className="AB">A</span>
+                                    <span className="AB">失</span>
                                 </Col>
                                 <Col className="mx-0 px-1">
                                     <Button
@@ -822,7 +1316,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                 </Col>
                                 <Col className="mx-0 px-1">
                                     <span className="number">
-                                        {FTAB}
+                                        {list.game[key].parameter.ft_FB}
                                     </span>
                                 </Col>
                                 <Col className="mx-0 px-1">
@@ -852,7 +1346,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                 </Col>
                                 <Col className="mx-0 px-1">
                                     <span className="number">
-                                        {REBOUND_DA}
+                                        {list.game[key].parameter.rebound_DA}
                                     </span>
                                 </Col>
                                 <Col className="mx-0 px-1">
@@ -874,7 +1368,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                 </Col>
                                 <Col className="mx-0 px-1">
                                     <span className="number">
-                                        {REBOUND_OA}
+                                        {list.game[key].parameter.rebound_OA}
                                     </span>
                                 </Col>
                                 <Col className="mx-0 px-1">
@@ -897,7 +1391,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                 </Col>
                                 <Col className="mx-0 px-1">
                                     <span className="number">
-                                        {REBOUND_DB}
+                                        {list.game[key].parameter.rebound_DB}
                                     </span>
                                 </Col>
                                 <Col className="mx-0 px-1">
@@ -919,7 +1413,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                 </Col>
                                 <Col className="mx-0 px-1">
                                     <span className="number">
-                                        {REBOUND_OB}
+                                        {list.game[key].parameter.rebound_OB}
                                     </span>
                                 </Col>
                                 <Col className="mx-0 px-1">
@@ -948,7 +1442,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                 </Col>
                                 <Col className="mx-0 px-1">
                                     <span className="number">
-                                        {BSA}
+                                        {list.game[key].parameter.bs_A}
                                     </span>
                                 </Col>
                                 <Col className="mx-0 px-1">
@@ -970,7 +1464,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                 </Col>
                                 <Col className="mx-0 px-1">
                                     <span className="number">
-                                        {BSB}
+                                        {list.game[key].parameter.bs_B}
                                     </span>
                                 </Col>
                                 <Col className="mx-0 px-1">
@@ -997,7 +1491,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                 </Col>
                                 <Col className="mx-0 px-1">
                                     <span className="number">
-                                        {TOA}
+                                        {list.game[key].parameter.to_A}
                                     </span>
                                 </Col>
                                 <Col className="mx-0 px-1">
@@ -1019,7 +1513,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                 </Col>
                                 <Col className="mx-0 px-1">
                                     <span className="number">
-                                        {TOB}
+                                        {list.game[key].parameter.to_B}
                                     </span>
                                 </Col>
                                 <Col className="mx-0 px-1">
@@ -1038,6 +1532,98 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
     }
 
     const Result = () => {
+        if (key !== "Q1" && key !== "Q2" && key !== "Q3" && key !== "Q4" && key !== "total") {
+            return null
+        }
+        var parameter: Parameter = InitialParameter;
+        if (key === "Q1" || key === "total") {
+            parameter = {
+                assist_A: list.game.Q1.parameter.assist_A + parameter.assist_A,
+                assist_B: list.game.Q1.parameter.assist_B + parameter.assist_B,
+                bs_A: list.game.Q1.parameter.bs_A + parameter.bs_A,
+                bs_B: list.game.Q1.parameter.bs_B + parameter.bs_B,
+                foul_A: list.game.Q1.parameter.foul_A + parameter.foul_A,
+                foul_B: list.game.Q1.parameter.foul_B + parameter.foul_B,
+                ft_SA: list.game.Q1.parameter.ft_SA + parameter.ft_SA,
+                ft_SB: list.game.Q1.parameter.ft_SB + parameter.ft_SB,
+                ft_FA: list.game.Q1.parameter.ft_FA + parameter.ft_FA,
+                ft_FB: list.game.Q1.parameter.ft_FB + parameter.ft_FB,
+                rebound_DA: list.game.Q1.parameter.rebound_DA + parameter.rebound_DA,
+                rebound_DB: list.game.Q1.parameter.rebound_DB + parameter.rebound_DB,
+                rebound_OA: list.game.Q1.parameter.rebound_OA + parameter.rebound_OA,
+                rebound_OB: list.game.Q1.parameter.rebound_OB + parameter.rebound_OB,
+                steal_A: list.game.Q1.parameter.steal_A + parameter.steal_A,
+                steal_B: list.game.Q1.parameter.steal_B + parameter.steal_B,
+                to_A: list.game.Q1.parameter.to_A + parameter.to_A,
+                to_B: list.game.Q1.parameter.to_B + parameter.to_B,
+            }
+        }
+        if (key === "Q2" || key === "total") {
+            parameter = {
+                assist_A: list.game.Q2.parameter.assist_A + parameter.assist_A,
+                assist_B: list.game.Q2.parameter.assist_B + parameter.assist_B,
+                bs_A: list.game.Q2.parameter.bs_A + parameter.bs_A,
+                bs_B: list.game.Q2.parameter.bs_B + parameter.bs_B,
+                foul_A: list.game.Q2.parameter.foul_A + parameter.foul_A,
+                foul_B: list.game.Q2.parameter.foul_B + parameter.foul_B,
+                ft_SA: list.game.Q2.parameter.ft_SA + parameter.ft_SA,
+                ft_SB: list.game.Q2.parameter.ft_SB + parameter.ft_SB,
+                ft_FA: list.game.Q2.parameter.ft_FA + parameter.ft_FA,
+                ft_FB: list.game.Q2.parameter.ft_FB + parameter.ft_FB,
+                rebound_DA: list.game.Q2.parameter.rebound_DA + parameter.rebound_DA,
+                rebound_DB: list.game.Q2.parameter.rebound_DB + parameter.rebound_DB,
+                rebound_OA: list.game.Q2.parameter.rebound_OA + parameter.rebound_OA,
+                rebound_OB: list.game.Q2.parameter.rebound_OB + parameter.rebound_OB,
+                steal_A: list.game.Q2.parameter.steal_A + parameter.steal_A,
+                steal_B: list.game.Q2.parameter.steal_B + parameter.steal_B,
+                to_A: list.game.Q2.parameter.to_A + parameter.to_A,
+                to_B: list.game.Q2.parameter.to_B + parameter.to_B,
+            }
+        }
+        if (key === "Q3" || key === "total") {
+            parameter = {
+                assist_A: list.game.Q3.parameter.assist_A + parameter.assist_A,
+                assist_B: list.game.Q3.parameter.assist_B + parameter.assist_B,
+                bs_A: list.game.Q3.parameter.bs_A + parameter.bs_A,
+                bs_B: list.game.Q3.parameter.bs_B + parameter.bs_B,
+                foul_A: list.game.Q3.parameter.foul_A + parameter.foul_A,
+                foul_B: list.game.Q3.parameter.foul_B + parameter.foul_B,
+                ft_SA: list.game.Q3.parameter.ft_SA + parameter.ft_SA,
+                ft_SB: list.game.Q3.parameter.ft_SB + parameter.ft_SB,
+                ft_FA: list.game.Q3.parameter.ft_FA + parameter.ft_FA,
+                ft_FB: list.game.Q3.parameter.ft_FB + parameter.ft_FB,
+                rebound_DA: list.game.Q3.parameter.rebound_DA + parameter.rebound_DA,
+                rebound_DB: list.game.Q3.parameter.rebound_DB + parameter.rebound_DB,
+                rebound_OA: list.game.Q3.parameter.rebound_OA + parameter.rebound_OA,
+                rebound_OB: list.game.Q3.parameter.rebound_OB + parameter.rebound_OB,
+                steal_A: list.game.Q3.parameter.steal_A + parameter.steal_A,
+                steal_B: list.game.Q3.parameter.steal_B + parameter.steal_B,
+                to_A: list.game.Q3.parameter.to_A + parameter.to_A,
+                to_B: list.game.Q3.parameter.to_B + parameter.to_B,
+            }
+        }
+        if (key === "Q4" || key === "total") {
+            parameter = {
+                assist_A: list.game.Q4.parameter.assist_A + parameter.assist_A,
+                assist_B: list.game.Q4.parameter.assist_B + parameter.assist_B,
+                bs_A: list.game.Q4.parameter.bs_A + parameter.bs_A,
+                bs_B: list.game.Q4.parameter.bs_B + parameter.bs_B,
+                foul_A: list.game.Q4.parameter.foul_A + parameter.foul_A,
+                foul_B: list.game.Q4.parameter.foul_B + parameter.foul_B,
+                ft_SA: list.game.Q4.parameter.ft_SA + parameter.ft_SA,
+                ft_SB: list.game.Q4.parameter.ft_SB + parameter.ft_SB,
+                ft_FA: list.game.Q4.parameter.ft_FA + parameter.ft_FA,
+                ft_FB: list.game.Q4.parameter.ft_FB + parameter.ft_FB,
+                rebound_DA: list.game.Q4.parameter.rebound_DA + parameter.rebound_DA,
+                rebound_DB: list.game.Q4.parameter.rebound_DB + parameter.rebound_DB,
+                rebound_OA: list.game.Q4.parameter.rebound_OA + parameter.rebound_OA,
+                rebound_OB: list.game.Q4.parameter.rebound_OB + parameter.rebound_OB,
+                steal_A: list.game.Q4.parameter.steal_A + parameter.steal_A,
+                steal_B: list.game.Q4.parameter.steal_B + parameter.steal_B,
+                to_A: list.game.Q4.parameter.to_A + parameter.to_A,
+                to_B: list.game.Q4.parameter.to_B + parameter.to_B,
+            }
+        }
         return (
             <Table striped bordered>
                 <thead>
@@ -1058,38 +1644,163 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                 </thead>
                 <tbody>
                     <tr>
-                        <td>A</td>
-                        <td>{FGPA + FTMA}</td>
+            			<td>{list.game.team_A}</td>
+                        <td>{FGPA + parameter.ft_SA}</td>
                         <td>M : {FGMA}<br/>A : {FGAA}<br/>{(FGMA/FGAA*100).toFixed(0)}%</td>
                         <td>M : {FG3MA}<br/>A : {FG3AA}<br/>{(FG3MA/FG3AA*100).toFixed(0)}%</td>
                         <td>M : {FG2MA}<br/>A : {FG2AA}<br/>{(FG2MA/FG2AA*100).toFixed(0)}%</td>
-                        <td>M : {FTMA}<br/>A : {FTAA+FTMA}<br/>{(FTMA/(FTAA+FTMA)*100).toFixed(0)}%</td>
-                        <td>{FOULA}</td>
-                        <td>DIF : {REBOUND_DA}<br/>OFF : {REBOUND_OA}<br/>Total : {REBOUND_DA+REBOUND_OA}</td>
-                        <td>{ASSISTA}</td>
-                        <td>{STEALA}</td>
-                        <td>{BSA}</td>
-                        <td>{TOA}</td>
+                        <td>
+                            M : {parameter.ft_SA}<br/>
+                            A : {parameter.ft_SA+parameter.ft_FA}<br/>
+                            {(parameter.ft_SA/(parameter.ft_SA+parameter.ft_FA)*100).toFixed(0)}%</td>
+                        <td>{parameter.foul_A}</td>
+                        <td>
+                            DIF : {parameter.rebound_DA}<br/>
+                            OFF : {parameter.rebound_OA}<br/>
+                            Total : {parameter.rebound_DA+parameter.rebound_OA}</td>
+                        <td>{parameter.assist_A}</td>
+                        <td>{parameter.steal_A}</td>
+                        <td>{parameter.bs_A}</td>
+                        <td>{parameter.to_A}</td>
                     </tr>
                     <tr>
-                        <td>B</td>
-                        <td>{FGPB + FTMB}</td>
+            			<td>{list.game.team_B}</td>
+                        <td>{FGPB + parameter.ft_SB}</td>
                         <td>M : {FGMB}<br/>A : {FGAB}<br/>{(FGMB/FGAB*100).toFixed(0)}%</td>
                         <td>M : {FG3MB}<br/>A : {FG3AB}<br/>{(FG3MB/FG3AB*100).toFixed(0)}%</td>
                         <td>M : {FG2MB}<br/>A : {FG2AB}<br/>{(FG2MB/FG2AB*100).toFixed(0)}%</td>
-                        <td>M : {FTMB}<br/>A : {FTAB+FTMB}<br/>{(FTMB/(FTAB+FTMB)*100).toFixed(0)}%</td>
-                        <td>{FOULB}</td>
-                        <td>DIF : {REBOUND_DB}<br/>OFF : {REBOUND_OB}<br/>Total : {REBOUND_DB+REBOUND_OB}</td>
-                        <td>{ASSISTB}</td>
-                        <td>{STEALB}</td>
-                        <td>{BSB}</td>
-                        <td>{TOB}</td>
+                        <td>
+                            M : {parameter.ft_SB}<br/>
+                            A : {parameter.ft_SB+parameter.ft_FB}<br/>
+                            {(parameter.ft_SB/(parameter.ft_SB+parameter.ft_FB)*100).toFixed(0)}%</td>
+                        <td>{parameter.foul_B}</td>
+                        <td>
+                            DIF : {parameter.rebound_DB}<br/>
+                            OFF : {parameter.rebound_OB}<br/>
+                            Total : {parameter.rebound_DB+parameter.rebound_OB}</td>
+                        <td>{parameter.assist_B}</td>
+                        <td>{parameter.steal_B}</td>
+                        <td>{parameter.bs_B}</td>
+                        <td>{parameter.to_B}</td>
                     </tr>
                 </tbody>
             </Table>
         )
     }
     const Result2 = () => {
+        if (key !== "Q1" && key !== "Q2" && key !== "Q3" && key !== "Q4" && key !== "total") {
+            return null
+        }
+        var parameter: Parameter = InitialParameter;
+        if (key === "Q1" || key === "total") {
+            parameter = {
+                assist_A: list.game.Q1.parameter.assist_A + parameter.assist_A,
+                assist_B: list.game.Q1.parameter.assist_B + parameter.assist_B,
+                bs_A: list.game.Q1.parameter.bs_A + parameter.bs_A,
+                bs_B: list.game.Q1.parameter.bs_B + parameter.bs_B,
+                foul_A: list.game.Q1.parameter.foul_A + parameter.foul_A,
+                foul_B: list.game.Q1.parameter.foul_B + parameter.foul_B,
+                ft_SA: list.game.Q1.parameter.ft_SA + parameter.ft_SA,
+                ft_SB: list.game.Q1.parameter.ft_SB + parameter.ft_SB,
+                ft_FA: list.game.Q1.parameter.ft_FA + parameter.ft_FA,
+                ft_FB: list.game.Q1.parameter.ft_FB + parameter.ft_FB,
+                rebound_DA: list.game.Q1.parameter.rebound_DA + parameter.rebound_DA,
+                rebound_DB: list.game.Q1.parameter.rebound_DB + parameter.rebound_DB,
+                rebound_OA: list.game.Q1.parameter.rebound_OA + parameter.rebound_OA,
+                rebound_OB: list.game.Q1.parameter.rebound_OB + parameter.rebound_OB,
+                steal_A: list.game.Q1.parameter.steal_A + parameter.steal_A,
+                steal_B: list.game.Q1.parameter.steal_B + parameter.steal_B,
+                to_A: list.game.Q1.parameter.to_A + parameter.to_A,
+                to_B: list.game.Q1.parameter.to_B + parameter.to_B,
+            }
+        }
+        if (key === "Q2" || key === "total") {
+            parameter = {
+                assist_A: list.game.Q2.parameter.assist_A + parameter.assist_A,
+                assist_B: list.game.Q2.parameter.assist_B + parameter.assist_B,
+                bs_A: list.game.Q2.parameter.bs_A + parameter.bs_A,
+                bs_B: list.game.Q2.parameter.bs_B + parameter.bs_B,
+                foul_A: list.game.Q2.parameter.foul_A + parameter.foul_A,
+                foul_B: list.game.Q2.parameter.foul_B + parameter.foul_B,
+                ft_SA: list.game.Q2.parameter.ft_SA + parameter.ft_SA,
+                ft_SB: list.game.Q2.parameter.ft_SB + parameter.ft_SB,
+                ft_FA: list.game.Q2.parameter.ft_FA + parameter.ft_FA,
+                ft_FB: list.game.Q2.parameter.ft_FB + parameter.ft_FB,
+                rebound_DA: list.game.Q2.parameter.rebound_DA + parameter.rebound_DA,
+                rebound_DB: list.game.Q2.parameter.rebound_DB + parameter.rebound_DB,
+                rebound_OA: list.game.Q2.parameter.rebound_OA + parameter.rebound_OA,
+                rebound_OB: list.game.Q2.parameter.rebound_OB + parameter.rebound_OB,
+                steal_A: list.game.Q2.parameter.steal_A + parameter.steal_A,
+                steal_B: list.game.Q2.parameter.steal_B + parameter.steal_B,
+                to_A: list.game.Q2.parameter.to_A + parameter.to_A,
+                to_B: list.game.Q2.parameter.to_B + parameter.to_B,
+            }
+        }
+        if (key === "Q3" || key === "total") {
+            parameter = {
+                assist_A: list.game.Q3.parameter.assist_A + parameter.assist_A,
+                assist_B: list.game.Q3.parameter.assist_B + parameter.assist_B,
+                bs_A: list.game.Q3.parameter.bs_A + parameter.bs_A,
+                bs_B: list.game.Q3.parameter.bs_B + parameter.bs_B,
+                foul_A: list.game.Q3.parameter.foul_A + parameter.foul_A,
+                foul_B: list.game.Q3.parameter.foul_B + parameter.foul_B,
+                ft_SA: list.game.Q3.parameter.ft_SA + parameter.ft_SA,
+                ft_SB: list.game.Q3.parameter.ft_SB + parameter.ft_SB,
+                ft_FA: list.game.Q3.parameter.ft_FA + parameter.ft_FA,
+                ft_FB: list.game.Q3.parameter.ft_FB + parameter.ft_FB,
+                rebound_DA: list.game.Q3.parameter.rebound_DA + parameter.rebound_DA,
+                rebound_DB: list.game.Q3.parameter.rebound_DB + parameter.rebound_DB,
+                rebound_OA: list.game.Q3.parameter.rebound_OA + parameter.rebound_OA,
+                rebound_OB: list.game.Q3.parameter.rebound_OB + parameter.rebound_OB,
+                steal_A: list.game.Q3.parameter.steal_A + parameter.steal_A,
+                steal_B: list.game.Q3.parameter.steal_B + parameter.steal_B,
+                to_A: list.game.Q3.parameter.to_A + parameter.to_A,
+                to_B: list.game.Q3.parameter.to_B + parameter.to_B,
+            }
+        }
+        if (key === "Q4" || key === "total") {
+            parameter = {
+                assist_A: list.game.Q4.parameter.assist_A + parameter.assist_A,
+                assist_B: list.game.Q4.parameter.assist_B + parameter.assist_B,
+                bs_A: list.game.Q4.parameter.bs_A + parameter.bs_A,
+                bs_B: list.game.Q4.parameter.bs_B + parameter.bs_B,
+                foul_A: list.game.Q4.parameter.foul_A + parameter.foul_A,
+                foul_B: list.game.Q4.parameter.foul_B + parameter.foul_B,
+                ft_SA: list.game.Q4.parameter.ft_SA + parameter.ft_SA,
+                ft_SB: list.game.Q4.parameter.ft_SB + parameter.ft_SB,
+                ft_FA: list.game.Q4.parameter.ft_FA + parameter.ft_FA,
+                ft_FB: list.game.Q4.parameter.ft_FB + parameter.ft_FB,
+                rebound_DA: list.game.Q4.parameter.rebound_DA + parameter.rebound_DA,
+                rebound_DB: list.game.Q4.parameter.rebound_DB + parameter.rebound_DB,
+                rebound_OA: list.game.Q4.parameter.rebound_OA + parameter.rebound_OA,
+                rebound_OB: list.game.Q4.parameter.rebound_OB + parameter.rebound_OB,
+                steal_A: list.game.Q4.parameter.steal_A + parameter.steal_A,
+                steal_B: list.game.Q4.parameter.steal_B + parameter.steal_B,
+                to_A: list.game.Q4.parameter.to_A + parameter.to_A,
+                to_B: list.game.Q4.parameter.to_B + parameter.to_B,
+            }
+        }
+        
+        const PTS_A = FGPA + parameter.ft_SA;
+        const POSS_A = FGAA + 0.44*(parameter.ft_SA+parameter.ft_FA) + parameter.to_A;
+        const PPP_A = PTS_A/POSS_A;
+        const eFG_A = (FGMA + FG3MA*0.5) / FGAA;
+        const TO_A = parameter.to_A / (FGAA + 0.44*(parameter.ft_SA+parameter.ft_FA)+parameter.to_A);
+        const FTR_A = (parameter.ft_SA+parameter.ft_FA) / FGAA;
+        const ORB_A = parameter.rebound_OA / (parameter.rebound_OA + parameter.rebound_DB);
+        const DRB_A = parameter.rebound_DA / (parameter.rebound_DA + parameter.rebound_OB);
+        const TRB_A = (parameter.rebound_DA+parameter.rebound_OA)/((parameter.rebound_DA+parameter.rebound_OA)+(parameter.rebound_OB+parameter.rebound_DB));
+
+        const PTS_B = FGPB + parameter.ft_SB;
+        const POSS_B = FGAB + 0.44*(parameter.ft_SB+parameter.ft_FB) + parameter.to_B;
+        const PPP_B = PTS_B/POSS_B;
+        const eFG_B = (FGMB + FG3MB*0.5) / FGAB;
+        const TO_B = parameter.to_B / (FGAB + 0.44*(parameter.ft_SB+parameter.ft_FB)+parameter.to_B);
+        const FTR_B = (parameter.ft_SB+parameter.ft_FB) / FGAB;
+        const ORB_B = parameter.rebound_OB / (parameter.rebound_OB + parameter.rebound_DA);
+        const DRB_B = parameter.rebound_DB / (parameter.rebound_DB + parameter.rebound_OA);
+        const TRB_B = (parameter.rebound_DB+parameter.rebound_OB)/((parameter.rebound_DB+parameter.rebound_OB)+(parameter.rebound_OA+parameter.rebound_DA));
+
         return (
             <Table striped bordered>
             	<thead>
@@ -1107,26 +1818,26 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
             	</thead>
             	<tbody>
             		<tr>
-            			<td>A:</td>
-            			<td>{((FGPA+FTMA)/(FGAA+0.44*FTAA+TOA)).toFixed(3)}</td>
-            			<td>{(FGAA+0.44*FTAA+TOA).toFixed(2)}</td>
-            			<td>{(((FGMA+FG3MA*0.5)/FGAA)*100).toFixed(2)}%</td>
-            			<td>{(TOA/(FGAA+0.44*FTAA+TOA)*100).toFixed(2)}%</td>
-            			<td>{(FTAA/FGAA).toFixed(3)}</td>
-            			<td>{(REBOUND_OA/(REBOUND_OA+REBOUND_DB)*100).toFixed(2)}%</td>
-            			<td>{(REBOUND_DA/(REBOUND_DA+REBOUND_OB)*100).toFixed(2)}%</td>
-            			<td>{((REBOUND_OA+REBOUND_DA)/(REBOUND_OA+REBOUND_DA+REBOUND_DB+REBOUND_OB)*100).toFixed(2)}%</td>
+            			<td>{list.game.team_A}</td>
+                        <td>{(PPP_A).toFixed(3)}</td>
+                        <td>{(POSS_A).toFixed(2)}</td>
+                        <td>{(eFG_A*100).toFixed(2)}%</td>
+                        <td>{(TO_A*100).toFixed(2)}%</td>
+                        <td>{(FTR_A).toFixed(3)}</td>
+                        <td>{(ORB_A*100).toFixed(2)}%</td>
+                        <td>{(DRB_A*100).toFixed(2)}%</td>
+                        <td>{(TRB_A*100).toFixed(2)}%</td>
             		</tr>
             		<tr>
-            			<td>B:</td>
-            			<td>{((FGPB+FTMB)/(FGAB+0.44*FTAB+TOB)).toFixed(3)}</td>
-            			<td>{(FGAB+0.44*FTAB+TOB).toFixed(2)}%</td>
-            			<td>{((FGMB+FG3MB*0.5)/FGAB*100).toFixed(2)}%</td>
-            			<td>{(TOB/(FGAB+0.44*FTAB+TOB)*100).toFixed(2)}%</td>
-            			<td>{(FTAB/FGAB).toFixed(3)}</td>
-            			<td>{(REBOUND_OB/(REBOUND_OB+REBOUND_DA)*100).toFixed(2)}%</td>
-            			<td>{(REBOUND_DB/(REBOUND_DB+REBOUND_OA)*100).toFixed(2)}%</td>
-            			<td>{((REBOUND_OB+REBOUND_DB)/(REBOUND_OA+REBOUND_DA+REBOUND_DB+REBOUND_OB)*100).toFixed(2)}%</td>
+            			<td>{list.game.team_B}</td>
+                        <td>{(PPP_B).toFixed(3)}</td>
+                        <td>{(POSS_B).toFixed(2)}</td>
+                        <td>{(eFG_B*100).toFixed(2)}%</td>
+                        <td>{(TO_B*100).toFixed(2)}%</td>
+                        <td>{(FTR_B).toFixed(3)}</td>
+                        <td>{(ORB_B*100).toFixed(2)}%</td>
+                        <td>{(DRB_B*100).toFixed(2)}%</td>
+                        <td>{(TRB_B*100).toFixed(2)}%</td>
             		</tr>
             	</tbody>
             </Table>
@@ -1138,15 +1849,28 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
 			<Container>
                 <Tabs
                     id="controlled-tab-example"
+                    activeKey={key}
                     defaultActiveKey="info"
-                    onSelect={(k) => {setKey(k)}}
+                    onSelect={(k) => k === null ? setKey("info") : setKey(k)}
                 >
                     <Tab eventKey="info" title="基本情報">
                         <Row className="my-1">
                             <Form>
                                 <Form.Group as={Col} md="9" controlId="validationCustom04">
                                     <Form.Label>日付</Form.Label>
-                                    <Form.Control type="date"/>
+                                    <Form.Control
+                                        type="date"
+                                        value={list.game.date}
+                                        onChange={(e) => {
+                                            setList({
+                                                ...list,
+                                                game: {
+                                                    ...list.game,
+                                                    date: e.target.value
+                                                }
+                                            })
+                                        }}
+                                    />
                                     <Form.Control.Feedback>OK!</Form.Control.Feedback>
                                     <Form.Control.Feedback type="invalid">日付を入力してください</Form.Control.Feedback>
                                 </Form.Group>
@@ -1154,72 +1878,79 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                     <Form.Label>Team A</Form.Label>
                                     <Form.Control
                                         type="text"
-                                        placeholder="Team A"
-                                        value={Team_A}
-                                        onChange={(e) => setTeam_A(e.target.value)}
+                                        placeholder="A"
+                                        value={list.game.team_A}
+                                        onChange={(e) => setList({...list, game: {...list.game, team_A: e.target.value}})}
                                     />
                                     <Form.Label>Team B</Form.Label>
                                     <Form.Control
                                         type="text"
-                                        placeholder="Team B"
-                                        value={Team_B}
-                                        onChange={(e) => setTeam_B(e.target.value)}
+                                        placeholder="B"
+                                        value={list.game.team_B}
+                                        onChange={(e) => setList({...list, game: {...list.game, team_B: e.target.value}})}
+                                    />
+                                    <Form.Label>解析者</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="鈴木"
+                                        value={list.game.analyst}
+                                        onChange={(e) => setList({...list, game: {...list.game, analyst: e.target.value}})}
+                                    />
+                                    <Form.Label>場所</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="東京"
+                                        value={list.game.place}
+                                        onChange={(e) => setList({...list, game: {...list.game, place: e.target.value}})}
                                     />
                                 </Form.Group>
                             </Form>
                         </Row>
+                        <Row>
+                            <Col>
+                                <Button onClick={onSave}>保存</Button>
+                            </Col>
+                        </Row>
                     </Tab>
-                    <Tab eventKey="q1" title="Q1">
+                    <Tab eventKey="Q1" title="Q1">
+                        <ViewSave/>
+                        <Label />
 				        <Row className="gap-1">
-                            <Coat Edit={true}/>
-                            <ButtonToolbar className="gap-1">
-                                <Button onClick={onGoal}>Goal</Button>
-                                <Button onClick={onNotGoal}>Not Goal</Button>
-                                <Button onClick={onBack}>Back</Button>
-                                <Button onClick={onClear}>All clear</Button>
-                            </ButtonToolbar>
+                            <Coat/>
+                            <GoalButtons />
                             <Counter/>
                             <Result/>
                             <Result2/>
                         </Row>
                     </Tab>
-                    <Tab eventKey="q2" title="Q2">
+                    <Tab eventKey="Q2" title="Q2">
+                        <ViewSave/>
+                        <Label />
 				        <Row className="gap-1">
-                            <Coat Edit={true}/>
-                            <ButtonToolbar className="gap-1">
-                                <Button onClick={onGoal}>Goal</Button>
-                                <Button onClick={onNotGoal}>Not Goal</Button>
-                                <Button onClick={onBack}>Back</Button>
-                                <Button onClick={onClear}>All clear</Button>
-                            </ButtonToolbar>
+                            <Coat/>
+                            <GoalButtons />
                             <Counter/>
                             <Result/>
                             <Result2/>
                         </Row>
                     </Tab>
-                    <Tab eventKey="q3" title="Q3">
+                    <Tab eventKey="Q3" title="Q3">
+                        <ViewSave/>
+                        <Label />
 				        <Row className="gap-1">
-                            <Coat Edit={true}/>
-                            <ButtonToolbar className="gap-1">
-                                <Button onClick={onGoal}>Goal</Button>
-                                <Button onClick={onNotGoal}>Not Goal</Button>
-                                <Button onClick={onBack}>Back</Button>
-                                <Button onClick={onClear}>All clear</Button>
-                            </ButtonToolbar>
+                            <Coat/>
+                            <GoalButtons />
                             <Counter/>
                             <Result/>
                             <Result2/>
                         </Row>
                     </Tab>
-                    <Tab eventKey="q4" title="Q4">
+                    <Tab eventKey="Q4" title="Q4">
+                        <ViewSave/>
+                        <Label />
 				        <Row className="gap-1">
-                            <Coat Edit={true}/>
-                            <ButtonToolbar className="gap-1">
-                                <Button onClick={onGoal}>Goal</Button>
-                                <Button onClick={onNotGoal}>Not Goal</Button>
-                                <Button onClick={onBack}>Back</Button>
-                                <Button onClick={onClear}>All clear</Button>
-                            </ButtonToolbar>
+                            <Coat/>
+                            <GoalButtons />
                             <Counter/>
                             <Result/>
                             <Result2/>
@@ -1227,7 +1958,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                     </Tab>
                     <Tab eventKey="total" title="Total">
 				        <Row className="gap-1">
-                            <Coat Edit={false}/>
+                            <Coat/>
                             <Result/>
                             <Result2/>
                         </Row>

@@ -8,8 +8,9 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
+import clone from "clone";
 import { Link , useHistory } from "react-router-dom";
-import { LoginInfo, Game, InitialGame, TestGame } from "../interfaces";
+import { LoginInfo, Game, InitialGame } from "../interfaces";
 import { auth, db } from "../Firebase";
 import { getDocs, getDoc, addDoc, setDoc, deleteDoc, collection, doc} from "firebase/firestore";
 import { DocumentReference } from "firebase/firestore";
@@ -20,6 +21,10 @@ type List = {
     game: Game,
 }
 
+type SortKey = {
+    key: string,
+    order: number
+}
 
 const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
 	const history = useHistory();
@@ -29,6 +34,8 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
     const [show, setShow] = useState(false);
     const [DeleteGameId, setDeleteGameId] = useState<string | null>(null);
     const [DeleteGameIndex, setDeleteGameIndex] = useState<number | null>(null);
+
+    const [SortKey, setSortKey] = useState<SortKey>({key: "date", order: 0});
     
     const [List, setList] = useState<List[]>([]);
     
@@ -39,6 +46,15 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
             querySnapshot.forEach(doc => {
                 ret.push({id:doc.id, game:doc.data().game} as List);
             });
+            ret.sort((a, b) => {
+                if (a.game.date > b.game.date) {
+                    return -1;
+                } else if (a.game.date < b.game.date) {
+                    return 1;
+                }
+                return 0;
+            });
+            setSortKey({key: "date", order: -1});
             setList(ret);
         })();
     }, [logininfo.userid]);
@@ -47,7 +63,7 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
 	
 	const onLogoutClick: React.MouseEventHandler<HTMLButtonElement> = async () => {
 		await auth.signOut();
-		history.push("/");
+		history.push("/");http://localhost:3000/
 		alert("ログアウトしました");
 	};
 
@@ -65,10 +81,11 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
 
 
     const onNewGame = async() => {
-        const newGameRef = collection(db, `users/${logininfo.userid}/games`);
-        const newGame: Game = InitialGame;
-        const newGameAdd = await addDoc(newGameRef, { game: newGame });
-        setList([...List, {id:newGameAdd.id, game:newGame} as List]);
+        history.push("/tool");
+        // const newGameRef = collection(db, `users/${logininfo.userid}/games`);
+        // const newGame: Game = InitialGame;
+        // const newGameAdd = await addDoc(newGameRef, { game: newGame });
+        // setList([...List, {id:newGameAdd.id, game:newGame} as List]);
     }
 
     // const onChange = async (e:any) => {
@@ -143,7 +160,7 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                     </Modal.Header>
                     <Modal.Body>
                         ID : {DeleteGameIndex+1}<br/>
-                        日付 : {List[DeleteGameIndex].game.year}年{List[DeleteGameIndex].game.month}月{List[DeleteGameIndex].game.day}日<br/>
+                        日付 : {List[DeleteGameIndex].game.date}<br/>
                         チームA : {List[DeleteGameIndex].game.team_A}<br/>
                         チームB : {List[DeleteGameIndex].game.team_B}<br/>
                         {/*
@@ -165,36 +182,91 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
         }
     }
 
-    // const onTest = () => {
-    //     try {
-    //         const docRef = updateDoc(doc(db, "games", logininfo.userid), {
-    //             games: Games
-    //         });
-    //         console.log("Document written with ID: ", logininfo.userid);
-    //     } catch (e) {
-    //         console.error("Error adding document: ", e);
-    //     }
-    //     console.log("onTest")
-    // }
-    //
-    const onTest = () => {
-        const newList = List;
-        newList.sort((a, b) => {
-            if (a.game.year === b.game.year) {
-                if (a.game.month === b.game.month) {
-                    return a.game.day - b.game.day;
-                } else {
-                    return a.game.month - b.game.month;
+    const onSort = (key: string) => {
+        const newList = clone(List);
+        var order = 1;
+        if (SortKey.key === key) {
+            order = SortKey.order === 1 ? -1 : 1;
+        }
+        if (key === "date") {
+            newList.sort((a, b) => {
+                if (a.game.date > b.game.date) {
+                    return 1*order;
+                } else if (a.game.date < b.game.date) {
+                    return -1*order;
                 }
-            } else {
-                return a.game.year - b.game.year;
-            }
-        });
+                return 0;
+            });
+            setSortKey({key:key, order:order});
+        } else if (key === "team_A") {
+            newList.sort((a, b) => {
+                if (a.game.team_A === undefined) {
+                    return 1;
+                }
+                if (b.game.team_A === undefined) {
+                    return -1;
+                }
+                if (a.game.team_A > b.game.team_A) {
+                    return 1*order;
+                } else if (a.game.team_A < b.game.team_A) {
+                    return -1*order;
+                }
+                return 0;
+            });
+            setSortKey({key:key, order:order});
+        } else if (key === "team_B") {
+            newList.sort((a, b) => {
+                if (a.game.team_B === undefined) {
+                    return 1;
+                }
+                if (b.game.team_B === undefined) {
+                    return -1;
+                }
+                if (a.game.team_B > b.game.team_B) {
+                    return 1*order;
+                } else if (a.game.team_B < b.game.team_B) {
+                    return -1*order;
+                }
+                return 0;
+            });
+            setSortKey({key:key, order:order});
+        } else if (key === "score_A") {
+            newList.sort((a, b) => {
+                if (a.game.score_A === undefined) {
+                    return 1;
+                }
+                if (b.game.score_A === undefined) {
+                    return -1;
+                }
+                if (a.game.score_A > b.game.score_A) {
+                    return 1*order;
+                } else if (a.game.score_A < b.game.score_A) {
+                    return -1*order;
+                }
+                return 0;
+            });
+            setSortKey({key:key, order:order});
+        } else if (key === "score_B") {
+            newList.sort((a, b) => {
+                if (a.game.score_B === undefined) {
+                    return 1;
+                }
+                if (b.game.score_B === undefined) {
+                    return -1;
+                }
+                if (a.game.score_B > b.game.score_B) {
+                    return 1*order;
+                } else if (a.game.score_B < b.game.score_B) {
+                    return -1*order;
+                }
+                return 0;
+            });
+            setSortKey({key:key, order:order});
+        }
         setList(newList);
-        console.log(newList)
     }
 
-	const onEdit = (id: string, index: number) => {
+	const onView = (id: string, index: number) => {
 		history.push("/tool", List[index]);
     }
 
@@ -226,11 +298,27 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                         <thead>
                                             <tr>
                                                 <th>ID</th>
-                                                <th>日付</th>
-                                                <th>チームA</th>
-                                                <th>チームB</th>
-                                                <th>スコア</th>
-                                                <th>Edit</th>
+                                                <th onClick={() => onSort("date")}>
+                                                    日付
+                                                    {SortKey.key === "date" ? (SortKey.order === 1 ? "▲" : "▼") : ""}
+                                                </th>
+                                                <th onClick={() => onSort("team_A")}>
+                                                    チームA
+                                                    {SortKey.key === "team_A" ? (SortKey.order === 1 ? "▲" : "▼") : ""}
+                                                </th>
+                                                <th onClick={() => onSort("team_B")}>
+                                                    チームB
+                                                    {SortKey.key === "team_B" ? (SortKey.order === 1 ? "▲" : "▼") : ""}
+                                                </th>
+                                                <th onClick={() => onSort("score_A")}>
+                                                    スコアA
+                                                    {SortKey.key === "score_A" ? (SortKey.order === 1 ? "▲" : "▼") : ""}
+                                                </th>
+                                                <th onClick={() => onSort("score_B")}>
+                                                    スコアB
+                                                    {SortKey.key === "score_B" ? (SortKey.order === 1 ? "▲" : "▼") : ""}
+                                                </th>
+                                                <th>View</th>
                                                 <th>Delete</th>
                                             </tr>
                                         </thead>
@@ -239,13 +327,14 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                                 return (
                                                     <tr>
                                                         <td>{index+1}</td>
-                                                        <td>{list.game.year}年{list.game.month}月{list.game.day}日</td>
+                                                        <td>{list.game.date}</td>
                                                         <td>{list.game.team_A}</td>
                                                         <td>{list.game.team_B}</td>
-                                                        <td>{0}-{0}</td>
+                                                        <td>{list.game.score_A}</td>
+                                                        <td>{list.game.score_B}</td>
                                                         <td>
-                                                            <Button id={list.id} onClick={() => onEdit(list.id,index)}>
-                                                                Edit
+                                                            <Button id={list.id} onClick={() => onView(list.id,index)}>
+                                                                View
                                                             </Button>
                                                         </td>
                                                         <td>
