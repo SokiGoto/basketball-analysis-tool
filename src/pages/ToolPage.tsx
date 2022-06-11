@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
-//import { Box, Grid } from "@mui/material";
+
+import { Link , useHistory, useLocation } from "react-router-dom";
+import { Prompt } from 'react-router'
+
 import Container from "react-bootstrap/Container";
 import Table from "react-bootstrap/Table";
 import Form from "react-bootstrap/Form";
@@ -7,8 +10,9 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
-import { Button, ButtonToolbar } from "react-bootstrap";
-import { Link , useHistory, useLocation } from "react-router-dom";
+import Button from "react-bootstrap/Button";
+import ButtonToolbar from "react-bootstrap/ButtonToolbar";
+
 import { updatePassword } from "firebase/auth";
 
 import { LoginInfo, Game, InitialGame, Point, InitialParameter, Parameter} from "../interfaces";
@@ -40,17 +44,21 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
 	const history = useHistory();
 
     const [list, setList] = useState<List>({id: "", game: InitialGame});
+    const [Beforlist, setBeforlist] = useState<List>({id: "", game: InitialGame});
     const { state } = useLocation<List>();
 
     const [key, setKey] = useState<string>("info");
     const [Edit, setEdit] = useState<boolean>(false);
+
     
     useEffect(() => {
         if (state !== undefined) {
             setList(state);
+            setBeforlist(state);
             setEdit(false);
         } else {
             setList({id: "", game: InitialGame});
+            setBeforlist({id: "", game: InitialGame});
             setEdit(true);
         }
     }, [state]);
@@ -592,6 +600,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                                 { game: {...list.game, score_A: score_A, score_B: score_B} })
                 .then((e) => {
                     setList({id: e.id, game: {...list.game, score_A: score_A, score_B: score_B}});
+                    setBeforlist({id: e.id, game: {...list.game, score_A: score_A, score_B: score_B}});
                     setEdit(false);
                     alert("保存しました");
                 });
@@ -601,6 +610,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                    { game: {...list.game, score_A: score_A, score_B: score_B} }, { merge: true })
             .then(() => {
                 setEdit(false);
+                setBeforlist(list);
                 alert("保存しました");
             })
             .catch(() => {
@@ -1847,6 +1857,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
 	if (logininfo.state == "signin") {
 		return (
 			<Container>
+                <Prompt when={list === Beforlist ? false : true} message="保存されていませんが移動しますか？" />
                 <Tabs
                     id="controlled-tab-example"
                     activeKey={key}

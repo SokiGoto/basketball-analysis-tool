@@ -1,4 +1,8 @@
 import React, { useState, useEffect} from "react";
+
+import { Link , useHistory } from "react-router-dom";
+
+import Dropdown from "react-bootstrap/Dropdown";
 import Container from "react-bootstrap/Container";
 import Table from "react-bootstrap/Table";
 import Modal from 'react-bootstrap/Modal'
@@ -8,8 +12,10 @@ import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
 import Tab from "react-bootstrap/Tab";
 import Tabs from "react-bootstrap/Tabs";
+
+import ReactPaginate from 'react-paginate'
+
 import clone from "clone";
-import { Link , useHistory } from "react-router-dom";
 import { LoginInfo, Game, InitialGame } from "../interfaces";
 import { auth, db } from "../Firebase";
 import { getDocs, getDoc, addDoc, setDoc, deleteDoc, collection, doc} from "firebase/firestore";
@@ -38,6 +44,9 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
     const [SortKey, setSortKey] = useState<SortKey>({key: "date", order: 0});
     
     const [List, setList] = useState<List[]>([]);
+
+    const [Page, setPage] = useState(1);
+    const [PageSize, setPageSize] = useState(5);
     
     useEffect(() => {
         (async () => {
@@ -264,10 +273,22 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
             setSortKey({key:key, order:order});
         }
         setList(newList);
+        setPage(1);
     }
 
 	const onView = (id: string, index: number) => {
 		history.push("/tool", List[index]);
+    }
+
+    const onPageChange = (e: any) => {
+        const selected = e.selected + 1;
+        console.log("selected:", selected);
+        setPage(selected);
+    }
+
+    const onPageSize = (e: any) => {
+        console.log("pageSize:", e);
+        setPageSize(e);
     }
 
 	return (
@@ -284,7 +305,7 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                         <Tab eventKey="games" title="試合">
                             <div className="mx-3 my-3">
                                 <Row className="gap-2">
-                                    <Col>
+                                    <Col xs={2}>
                                         <Button onClick={onNewGame}>
                                             NewGame
                                         </Button>
@@ -293,6 +314,20 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                             test
                                         </Button>
                                         */}
+                                    </Col>
+                                    <Col xs={7}>
+                                    </Col>
+                                    <Col xs={1}>
+                                        <Dropdown onSelect={onPageSize}>
+                                            <Dropdown.Toggle variant="" id="dropdown-basic">
+                                                表示件数
+                                            </Dropdown.Toggle>
+                                            <Dropdown.Menu>
+                                                <Dropdown.Item eventKey="5">5</Dropdown.Item>
+                                                <Dropdown.Item eventKey="10">10</Dropdown.Item>
+                                                <Dropdown.Item eventKey="20">20</Dropdown.Item>
+                                            </Dropdown.Menu>
+                                        </Dropdown>
                                     </Col>
                                     <Table striped bordered>
                                         <thead>
@@ -324,6 +359,7 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                         </thead>
                                         <tbody>
                                             {List.map((list, index) => {
+                                                if (index < Page * PageSize && index >= (Page - 1) * PageSize) {
                                                 return (
                                                     <tr>
                                                         <td>{index+1}</td>
@@ -344,17 +380,51 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                                         </td>
                                                     </tr>
                                                 );
+                                                } else {
+                                                    return null;
+                                                }
                                             })}
                                         </tbody>
                                     </Table>
+                                    <ReactPaginate
+                                        forcePage={Page-1}
+                                        pageCount={Math.ceil(List.length/PageSize)}
+                                        onPageChange={onPageChange}
+                                        marginPagesDisplayed={4} // 先頭と末尾に表示するページ数
+                                        pageRangeDisplayed={2} // 現在のページの前後をいくつ表示させるか
+
+                                        containerClassName="pagination justify-center" // ul(pagination本体)
+                                        pageClassName="page-item" // li
+                                        pageLinkClassName="page-link rounded-full" // a
+                                        activeClassName="active" // active.li
+                                        activeLinkClassName="active" // active.li < a
+
+                                        // 戻る・進む関連
+                                        previousClassName="page-item" // li
+                                        nextClassName="page-item" // li
+                                        previousLabel={'<'} // a
+                                        previousLinkClassName="previous-link"
+                                        nextLabel={'>'} // a
+                                        nextLinkClassName="next-link"
+                                        
+                                        // 先頭 or 末尾に行ったときにそれ以上戻れ(進め)なくする
+                                        disabledClassName="disabled-button d-none"
+                                        
+                                        // 中間ページの省略表記関連
+                                        breakLabel="..."
+                                        breakClassName="page-item"
+                                        breakLinkClassName="page-link"
+                                    />
                                 </Row>
                             </div>
                         </Tab>
+                        {/*
 		                <Tab eventKey="home" title="ユーザー情報">
                             <div className="mx-3 my-3">
 				                <p>id:{logininfo.userid}</p>
 			                </div>
 		                </Tab>
+                        */}
                         <Tab eventKey="password" title="パスワード変更">
                             <div className="mx-3 my-3">
                                 <Form onSubmit={handleFormSubmission}>

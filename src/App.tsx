@@ -42,7 +42,7 @@ function App() {
 				<Header loginInfo={loginInfo}/>
 				<Switch>
 					<Route exact path="/">
-						<MainPage/>
+						<MainPage logininfo={loginInfo}/>
 					</Route>
 					<Route path="/signup">
 						<SignupPage logininfo={loginInfo}/>
