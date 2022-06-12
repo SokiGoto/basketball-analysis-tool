@@ -24,5 +24,4 @@ yarn-error.log*
 
 .vim-lsp-settings
 
-firebase-debug.log
-firestore-debug.log
+*.log
