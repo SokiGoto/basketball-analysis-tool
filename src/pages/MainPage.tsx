@@ -32,21 +32,26 @@ const MainPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
 	//const onSubmitClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
 	//	setsubmittext(text)
 	//};
-	
-    if (logininfo.state !== "signin") {
-		return (
-			<Container className="mt-4 mb-5">
-				<Row>
-					<Col className="mx-3">
-						マイページを利用する場合は<Link to="/login">ログイン</Link>してくだい
-					</Col>
-				</Row>
-			</Container>
-		);
-	};
+
+        
+
+    const LoginButton: React.VFC<{}> = () => {
+        if (logininfo.state !== "signin") {
+    		return (
+    			<Row>
+    				<Col className="mx-3">
+    					マイページを利用する場合は<Link to="/login">ログイン</Link>してくだい
+    				</Col>
+    			</Row>
+    		);
+    	} else {
+            return null
+        }
+    }
 
 	return (
 		<Container className="mt-5 mb-5" style={{ backgroundColor: "#fff" }}>
+            <LoginButton />
             <Carousel>
                 <Carousel.Item>
                     <img

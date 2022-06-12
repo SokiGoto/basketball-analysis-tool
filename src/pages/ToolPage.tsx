@@ -15,9 +15,10 @@ import ButtonToolbar from "react-bootstrap/ButtonToolbar";
 
 import { updatePassword } from "firebase/auth";
 
-import { LoginInfo, Game, InitialGame, Point, InitialParameter, Parameter} from "../interfaces";
 import { auth, db } from "../Firebase";
 import { setDoc, addDoc, doc, collection } from "firebase/firestore"
+
+import { LoginInfo, Game, InitialGame, Point, InitialParameter, Parameter} from "../interfaces";
 
 interface Props {
     logininfo: LoginInfo;
@@ -50,6 +51,8 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
     const [key, setKey] = useState<string>("info");
     const [Edit, setEdit] = useState<boolean>(false);
 
+    const [MvPage, setMvPage] = useState<boolean>(false);
+
     
     useEffect(() => {
         if (state !== undefined) {
@@ -62,6 +65,12 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
             setEdit(true);
         }
     }, [state]);
+
+    useEffect(() => {
+        if (MvPage) {
+            history.push("/tool", list);
+        }
+    }, [MvPage]);
 
     console.log("list",list)
     
@@ -177,8 +186,22 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
     }, [list, key]);
 
 
+    useEffect(() => {
+        // イベントの設定
+        window.addEventListener('beforeunload', onUnload);
+        
+        return () => {
+            // イベントの設定解除
+            window.removeEventListener('beforeunload', onUnload);
+        }
+    })
+    
+    const onUnload = (e: any) => {
+        e.preventDefault();
+        e.returnValue = '';
+    }
 
-	
+
 
     const handleClick = (event: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
         if (key !== "Q1" && key !== "Q2" && key !== "Q3" && key !== "Q4") {
@@ -599,9 +622,11 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                 const newGameAdd = await addDoc(newGameRef,
                                                 { game: {...list.game, score_A: score_A, score_B: score_B} })
                 .then((e) => {
-                    setList({id: e.id, game: {...list.game, score_A: score_A, score_B: score_B}});
-                    setBeforlist({id: e.id, game: {...list.game, score_A: score_A, score_B: score_B}});
+                    const newList = {id: e.id, game: {...list.game, score_A: score_A, score_B: score_B}};
+                    setBeforlist(newList);
+                    setList(newList);
                     setEdit(false);
+                    setMvPage(true);
                     alert("保存しました");
                 });
             })();
@@ -611,6 +636,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
             .then(() => {
                 setEdit(false);
                 setBeforlist(list);
+                setMvPage(true);
                 alert("保存しました");
             })
             .catch(() => {

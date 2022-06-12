@@ -287,7 +287,8 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
     }
 
     const onPageSize = (e: any) => {
-        console.log("pageSize:", e);
+        const selected = Math.min(Page, Math.ceil(List.length / e));
+        setPage(selected);
         setPageSize(e);
     }
 
