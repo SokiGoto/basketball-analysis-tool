@@ -51,6 +51,86 @@ const Cross: React.VFC<{x: number, y: number, color: string}> = (pops) => {
     )
 }
 
+const Court = () => {
+    return (
+        <>
+            {/* harf coart
+            <rect x="0.5" y="0" width="99" height="100" fill="#AB5239"/>
+            <line x1="0.5" y1="0" x2="99.5" y2="0" stroke="#000" strokeWidth="0.5"/>
+            <line x1="0.5" y1="0" x2="0.5" y2="99" stroke="#000" strokeWidth="0.5"/>
+            <line x1="99.5" y1="0" x2="99.5" y2="99" stroke="#000" strokeWidth="0.5"/>
+            <line x1="0.5" y1="93" x2="99.5" y2="93" stroke="#000" strokeWidth="0.5"/>
+            <path d="M 93.5,0 L 93.5,20 A 45,45 0 0,1 6.5,20 L6.5,0z" fill="#AB5239" stroke="black" strokeWidth="0.5" />
+            <circle cx="50" cy="93" r="12" fill="none" strokeWidth="0.5" stroke="#000"/>
+            <rect x="33.7" y="0" width="32.7" height="38.7" stroke="black" strokeWidth="0.5" fill="none"/>
+            <path d="M 50,38.75 L62,38.75 A 12,12 0 0,1 38,38.75z" fill="none"stroke="black" strokeWidth="0.5" />
+            */}
+            <rect x="0" y="0" width={width} height={height} fill="#AB5239"/>
+            <line x1="0" y1="0" x2="0" y2={height} stroke="#000" strokeWidth="1"/>
+            <line x1={width} y1="0" x2={width} y2={height} stroke="#000" strokeWidth="1"/>
+            <line x1="0" y1="0" x2={width} y2="0" stroke="#000" strokeWidth="1"/>
+            <line x1="0" y1={height} x2={width} y2={height} stroke="#000" strokeWidth="1"/>
+            {/*center line and center circle*/}
+            <line x1={width/2} y1="0" x2={width/2} y2={height} stroke="#000" strokeWidth="0.5"/>
+            <circle cx={width/2} cy={height/2} r={circle} stroke="#000" strokeWidth="0.5" fill="none"/>
+            
+            {/*left coart*/}
+            <rect
+                x="0" y={(height - gbh)/2}
+                width={gbw} height={gbh}
+                stroke="#000" strokeWidth="0.5"
+                fill="none" 
+            />
+            <path 
+                d={`M${gbw},${height/2}
+                    L${gbw},${height/2-circle}
+                    A${circle},${circle} 0 0,1 
+                    ${gbw},${height/2 + circle}z`}
+                fill="#AB5239"
+                stroke="black"
+                strokeWidth="0.5"
+            />
+            <path
+                d={`M0,${tpls}
+                    L${tplsw},${tpls}
+                    A${tpl},${tpl} 0 0,1
+                    ${tplsw},${height-tpls}
+                    L0,${height-tpls}z`}
+                fill="none"
+                stroke="black"
+                strokeWidth="0.5"
+            />
+            {/*right coart*/}
+            <rect
+                x={width - gbw} y={(height - gbh)/2}
+                width={gbw} height={gbh}
+                stroke="#000" strokeWidth="0.5"
+                fill="none" 
+            />
+            <path 
+                d={`M${width-gbw},${height/2}
+                    L${width-gbw},${height/2-circle}
+                    A${circle},${circle} 0 0,0 
+                    ${width-gbw},${height/2 + circle}z`}
+                fill="#AB5239"
+                stroke="black"
+                strokeWidth="0.5"
+            />
+            <path
+                d={`M${width},${tpls}
+                    L${width-tplsw},${tpls}
+                    A${tpl},${tpl} 0 0,0
+                    ${width-tplsw},${height-tpls}
+                    L${width},${height-tpls}z`}
+                fill="none"
+                stroke="black"
+                strokeWidth="0.5"
+            />
+        </>
+    )
+}
+
+
 
 const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
 	const history = useHistory();
@@ -730,67 +810,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                         </Col>
                     </Row>
                     <svg id="coart" width="100%" height="100%" viewBox={`0 0 100 ${height}`}>
-                        <rect x="0" y="0" width={width} height={height} fill="#AB5239"/>
-                        <line x1="0" y1="0" x2="0" y2={height} stroke="#000" strokeWidth="1"/>
-                        <line x1={width} y1="0" x2={width} y2={height} stroke="#000" strokeWidth="1"/>
-                        <line x1="0" y1="0" x2={width} y2="0" stroke="#000" strokeWidth="1"/>
-                        <line x1="0" y1={height} x2={width} y2={height} stroke="#000" strokeWidth="1"/>
-                        {/*center line and center circle*/}
-                        <line x1={width/2} y1="0" x2={width/2} y2={height} stroke="#000" strokeWidth="0.5"/>
-                        <circle cx={width/2} cy={height/2} r={circle} stroke="#000" strokeWidth="0.5" fill="none"/>
-                        
-                        {/*left coart*/}
-                        <rect
-                            x="0" y={(height - gbh)/2}
-                            width={gbw} height={gbh}
-                            stroke="#000" strokeWidth="0.5"
-                            fill="none" 
-                        />
-                        <path 
-                            d={`M${gbw},${height/2}
-                                L${gbw},${height/2-circle}
-                                A${circle},${circle} 0 0,1 
-                                ${gbw},${height/2 + circle}z`}
-                            fill="#AB5239"
-                            stroke="black"
-                            strokeWidth="0.5"
-                        />
-                        <path
-                            d={`M0,${tpls}
-                                L${tplsw},${tpls}
-                                A${tpl},${tpl} 0 0,1
-                                ${tplsw},${height-tpls}
-                                L0,${height-tpls}z`}
-                            fill="none"
-                            stroke="black"
-                            strokeWidth="0.5"
-                        />
-                        {/*right coart*/}
-                        <rect
-                            x={width - gbw} y={(height - gbh)/2}
-                            width={gbw} height={gbh}
-                            stroke="#000" strokeWidth="0.5"
-                            fill="none" 
-                        />
-                        <path 
-                            d={`M${width-gbw},${height/2}
-                                L${width-gbw},${height/2-circle}
-                                A${circle},${circle} 0 0,0 
-                                ${width-gbw},${height/2 + circle}z`}
-                            fill="#AB5239"
-                            stroke="black"
-                            strokeWidth="0.5"
-                        />
-                        <path
-                            d={`M${width},${tpls}
-                                L${width-tplsw},${tpls}
-                                A${tpl},${tpl} 0 0,0
-                                ${width-tplsw},${height-tpls}
-                                L${width},${height-tpls}z`}
-                            fill="none"
-                            stroke="black"
-                            strokeWidth="0.5"
-                        />
+                        <Court/>
                         {Point.map((point, index) => {
                             if (point.team === "A") {
                                 if (point.color === "red"){
@@ -809,67 +829,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                         </Col>
                     </Row>
                     <svg id="coart" width="100%" height="100%" viewBox={`0 0 100 ${height}`}>
-                        <rect x="0" y="0" width={width} height={height} fill="#AB5239"/>
-                        <line x1="0" y1="0" x2="0" y2={height} stroke="#000" strokeWidth="1"/>
-                        <line x1={width} y1="0" x2={width} y2={height} stroke="#000" strokeWidth="1"/>
-                        <line x1="0" y1="0" x2={width} y2="0" stroke="#000" strokeWidth="1"/>
-                        <line x1="0" y1={height} x2={width} y2={height} stroke="#000" strokeWidth="1"/>
-                        {/*center line and center circle*/}
-                        <line x1={width/2} y1="0" x2={width/2} y2={height} stroke="#000" strokeWidth="0.5"/>
-                        <circle cx={width/2} cy={height/2} r={circle} stroke="#000" strokeWidth="0.5" fill="none"/>
-                        
-                        {/*left coart*/}
-                        <rect
-                            x="0" y={(height - gbh)/2}
-                            width={gbw} height={gbh}
-                            stroke="#000" strokeWidth="0.5"
-                            fill="none" 
-                        />
-                        <path 
-                            d={`M${gbw},${height/2}
-                                L${gbw},${height/2-circle}
-                                A${circle},${circle} 0 0,1 
-                                ${gbw},${height/2 + circle}z`}
-                            fill="#AB5239"
-                            stroke="black"
-                            strokeWidth="0.5"
-                        />
-                        <path
-                            d={`M0,${tpls}
-                                L${tplsw},${tpls}
-                                A${tpl},${tpl} 0 0,1
-                                ${tplsw},${height-tpls}
-                                L0,${height-tpls}z`}
-                            fill="none"
-                            stroke="black"
-                            strokeWidth="0.5"
-                        />
-                        {/*right coart*/}
-                        <rect
-                            x={width - gbw} y={(height - gbh)/2}
-                            width={gbw} height={gbh}
-                            stroke="#000" strokeWidth="0.5"
-                            fill="none" 
-                        />
-                        <path 
-                            d={`M${width-gbw},${height/2}
-                                L${width-gbw},${height/2-circle}
-                                A${circle},${circle} 0 0,0 
-                                ${width-gbw},${height/2 + circle}z`}
-                            fill="#AB5239"
-                            stroke="black"
-                            strokeWidth="0.5"
-                        />
-                        <path
-                            d={`M${width},${tpls}
-                                L${width-tplsw},${tpls}
-                                A${tpl},${tpl} 0 0,0
-                                ${width-tplsw},${height-tpls}
-                                L${width},${height-tpls}z`}
-                            fill="none"
-                            stroke="black"
-                            strokeWidth="0.5"
-                        />
+                        <Court/>
                         {Point.map((point, index) => {
                             if (point.team === "B") {
                                 if (point.color === "red"){
@@ -888,87 +848,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
         if (Edit){
             return (
                 <svg id="coart" width="100%" height="100%" viewBox={`0 0 100 ${height}`} onClick={handleClick}>
-                    {/* harf coart
-                    <rect x="0.5" y="0" width="99" height="100" fill="#AB5239"/>
-                    <line x1="0.5" y1="0" x2="99.5" y2="0" stroke="#000" strokeWidth="0.5"/>
-                    <line x1="0.5" y1="0" x2="0.5" y2="99" stroke="#000" strokeWidth="0.5"/>
-                    <line x1="99.5" y1="0" x2="99.5" y2="99" stroke="#000" strokeWidth="0.5"/>
-                    <line x1="0.5" y1="93" x2="99.5" y2="93" stroke="#000" strokeWidth="0.5"/>
-                    <path d="M 93.5,0 L 93.5,20 A 45,45 0 0,1 6.5,20 L6.5,0z" fill="#AB5239" stroke="black" strokeWidth="0.5" />
-                    <circle cx="50" cy="93" r="12" fill="none" strokeWidth="0.5" stroke="#000"/>
-                    <rect x="33.7" y="0" width="32.7" height="38.7" stroke="black" strokeWidth="0.5" fill="none"/>
-                    <path d="M 50,38.75 L62,38.75 A 12,12 0 0,1 38,38.75z" fill="none"stroke="black" strokeWidth="0.5" />
-                    */}
-                    <rect x="0" y="0" width={width} height={height} fill="#AB5239"/>
-                    <line x1="0" y1="0" x2="0" y2={height} stroke="#000" strokeWidth="1"/>
-                    <line x1={width} y1="0" x2={width} y2={height} stroke="#000" strokeWidth="1"/>
-                    <line x1="0" y1="0" x2={width} y2="0" stroke="#000" strokeWidth="1"/>
-                    <line x1="0" y1={height} x2={width} y2={height} stroke="#000" strokeWidth="1"/>
-                    {/*center line and center circle*/}
-                    <line x1={width/2} y1="0" x2={width/2} y2={height} stroke="#000" strokeWidth="0.5"/>
-                    <circle cx={width/2} cy={height/2} r={circle} stroke="#000" strokeWidth="0.5" fill="none"/>
-                    
-                    {/*left coart*/}
-                    <rect
-                        x="0" y={(height - gbh)/2}
-                        width={gbw} height={gbh}
-                        stroke="#000" strokeWidth="0.5"
-                        fill="none" 
-                    />
-                    <path 
-                        d={`M${gbw},${height/2}
-                            L${gbw},${height/2-circle}
-                            A${circle},${circle} 0 0,1 
-                            ${gbw},${height/2 + circle}z`}
-                        fill="#AB5239"
-                        stroke="black"
-                        strokeWidth="0.5"
-                    />
-                    <path
-                        d={`M0,${tpls}
-                            L${tplsw},${tpls}
-                            A${tpl},${tpl} 0 0,1
-                            ${tplsw},${height-tpls}
-                            L0,${height-tpls}z`}
-                        fill="none"
-                        stroke="black"
-                        strokeWidth="0.5"
-                    />
-                    {/*right coart*/}
-                    <rect
-                        x={width - gbw} y={(height - gbh)/2}
-                        width={gbw} height={gbh}
-                        stroke="#000" strokeWidth="0.5"
-                        fill="none" 
-                    />
-                    <path 
-                        d={`M${width-gbw},${height/2}
-                            L${width-gbw},${height/2-circle}
-                            A${circle},${circle} 0 0,0 
-                            ${width-gbw},${height/2 + circle}z`}
-                        fill="#AB5239"
-                        stroke="black"
-                        strokeWidth="0.5"
-                    />
-                    <path
-                        d={`M${width},${tpls}
-                            L${width-tplsw},${tpls}
-                            A${tpl},${tpl} 0 0,0
-                            ${width-tplsw},${height-tpls}
-                            L${width},${height-tpls}z`}
-                        fill="none"
-                        stroke="black"
-                        strokeWidth="0.5"
-                    />
-
-                    {/*
-                    <path d="M 94,18 a 45 45 10 0 1 -88,0" fill="none" stroke="black"/>
-                    <path d="M 95,10 a 45 45 0 0 1 -90,0" fill="none" stroke="black"/>
-                    <path d=" M50,10.5 L90,0 A45,45 0 1,1 9,0z" fill="none" stroke="black" strokeWidth="0.5"/>
-                    <path d="M 6,0 L 6,20  A 45,45 0 0,1 90,20 z" stroke="black" strokeWidth="0.5"/>
-                    */}
-
-
+                    <Court/>
                     {Point.map((point, index) => {
                         if (point.color === "red"){
                             return <circle cx={point.coor_x} cy={point.coor_y} r="1" fill={point.color} />
@@ -982,85 +862,13 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
         } else {
             return (
                 <svg id="coart" width="100%" height="100%" viewBox={`0 0 100 ${height}`}>
-                    {/* harf coart
-                    <rect x="0.5" y="0" width="99" height="100" fill="#AB5239"/>
-                    <line x1="0.5" y1="0" x2="99.5" y2="0" stroke="#000" strokeWidth="0.5"/>
-                    <line x1="0.5" y1="0" x2="0.5" y2="99" stroke="#000" strokeWidth="0.5"/>
-                    <line x1="99.5" y1="0" x2="99.5" y2="99" stroke="#000" strokeWidth="0.5"/>
-                    <line x1="0.5" y1="93" x2="99.5" y2="93" stroke="#000" strokeWidth="0.5"/>
-                    <path d="M 93.5,0 L 93.5,20 A 45,45 0 0,1 6.5,20 L6.5,0z" fill="#AB5239" stroke="black" strokeWidth="0.5" />
-                    <circle cx="50" cy="93" r="12" fill="none" strokeWidth="0.5" stroke="#000"/>
-                    <rect x="33.7" y="0" width="32.7" height="38.7" stroke="black" strokeWidth="0.5" fill="none"/>
-                    <path d="M 50,38.75 L62,38.75 A 12,12 0 0,1 38,38.75z" fill="none"stroke="black" strokeWidth="0.5" />
-                    */}
-                    <rect x="0" y="0" width={width} height={height} fill="#AB5239"/>
-                    <line x1="0" y1="0" x2="0" y2={height} stroke="#000" strokeWidth="1"/>
-                    <line x1={width} y1="0" x2={width} y2={height} stroke="#000" strokeWidth="1"/>
-                    <line x1="0" y1="0" x2={width} y2="0" stroke="#000" strokeWidth="1"/>
-                    <line x1="0" y1={height} x2={width} y2={height} stroke="#000" strokeWidth="1"/>
-                    {/*center line and center circle*/}
-                    <line x1={width/2} y1="0" x2={width/2} y2={height} stroke="#000" strokeWidth="0.5"/>
-                    <circle cx={width/2} cy={height/2} r={circle} stroke="#000" strokeWidth="0.5" fill="none"/>
-                    
-                    {/*left coart*/}
-                    <rect
-                        x="0" y={(height - gbh)/2}
-                        width={gbw} height={gbh}
-                        stroke="#000" strokeWidth="0.5"
-                        fill="none" 
-                    />
-                    <path 
-                        d={`M${gbw},${height/2}
-                            L${gbw},${height/2-circle}
-                            A${circle},${circle} 0 0,1 
-                            ${gbw},${height/2 + circle}z`}
-                        fill="#AB5239"
-                        stroke="black"
-                        strokeWidth="0.5"
-                    />
-                    <path
-                        d={`M0,${tpls}
-                            L${tplsw},${tpls}
-                            A${tpl},${tpl} 0 0,1
-                            ${tplsw},${height-tpls}
-                            L0,${height-tpls}z`}
-                        fill="none"
-                        stroke="black"
-                        strokeWidth="0.5"
-                    />
-                    {/*right coart*/}
-                    <rect
-                        x={width - gbw} y={(height - gbh)/2}
-                        width={gbw} height={gbh}
-                        stroke="#000" strokeWidth="0.5"
-                        fill="none" 
-                    />
-                    <path 
-                        d={`M${width-gbw},${height/2}
-                            L${width-gbw},${height/2-circle}
-                            A${circle},${circle} 0 0,0 
-                            ${width-gbw},${height/2 + circle}z`}
-                        fill="#AB5239"
-                        stroke="black"
-                        strokeWidth="0.5"
-                    />
-                    <path
-                        d={`M${width},${tpls}
-                            L${width-tplsw},${tpls}
-                            A${tpl},${tpl} 0 0,0
-                            ${width-tplsw},${height-tpls}
-                            L${width},${height-tpls}z`}
-                        fill="none"
-                        stroke="black"
-                        strokeWidth="0.5"
-                    />
+                    <Court/>
                     {Point.map((point, index) => {
                         if (point.color === "red"){
                             return <circle cx={point.coor_x} cy={point.coor_y} r="1" fill={point.color} />
                         } else if (point.color === "blue"){
                             return <Cross x={point.coor_x} y={point.coor_y} color={point.color} />
                         }
-
                     })}
                 </svg>
             )
@@ -1853,7 +1661,8 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
         const FTR_A = (parameter.ft_SA+parameter.ft_FA) / FGAA;
         const ORB_A = parameter.rebound_OA / (parameter.rebound_OA + parameter.rebound_DB);
         const DRB_A = parameter.rebound_DA / (parameter.rebound_DA + parameter.rebound_OB);
-        const TRB_A = (parameter.rebound_DA+parameter.rebound_OA)/((parameter.rebound_DA+parameter.rebound_OA)+(parameter.rebound_OB+parameter.rebound_DB));
+        const TRB_A = (parameter.rebound_DA+parameter.rebound_OA) /
+            ((parameter.rebound_DA+parameter.rebound_OA)+(parameter.rebound_OB+parameter.rebound_DB));
 
         const PTS_B = FGPB + parameter.ft_SB;
         const POSS_B = FGAB + 0.44*(parameter.ft_SB+parameter.ft_FB) + parameter.to_B;
@@ -1863,7 +1672,8 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
         const FTR_B = (parameter.ft_SB+parameter.ft_FB) / FGAB;
         const ORB_B = parameter.rebound_OB / (parameter.rebound_OB + parameter.rebound_DA);
         const DRB_B = parameter.rebound_DB / (parameter.rebound_DB + parameter.rebound_OA);
-        const TRB_B = (parameter.rebound_DB+parameter.rebound_OB)/((parameter.rebound_DB+parameter.rebound_OB)+(parameter.rebound_OA+parameter.rebound_DA));
+        const TRB_B = (parameter.rebound_DB+parameter.rebound_OB) / 
+            ((parameter.rebound_DB+parameter.rebound_OB)+(parameter.rebound_OA+parameter.rebound_DA));
 
         return (
             <Table striped bordered>
@@ -1977,7 +1787,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                             </Col>
                         </Row>
                     </Tab>
-                    <Tab eventKey="Q1" title="Q1">
+                    <Tab eventKey="Q1" title="1Q">
                         <ViewSave/>
                         <Label />
 				        <Row className="gap-1">
@@ -1988,7 +1798,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                             <Result2/>
                         </Row>
                     </Tab>
-                    <Tab eventKey="Q2" title="Q2">
+                    <Tab eventKey="Q2" title="2Q">
                         <ViewSave/>
                         <Label />
 				        <Row className="gap-1">
@@ -1999,7 +1809,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                             <Result2/>
                         </Row>
                     </Tab>
-                    <Tab eventKey="Q3" title="Q3">
+                    <Tab eventKey="Q3" title="3Q">
                         <ViewSave/>
                         <Label />
 				        <Row className="gap-1">
@@ -2010,7 +1820,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                             <Result2/>
                         </Row>
                     </Tab>
-                    <Tab eventKey="Q4" title="Q4">
+                    <Tab eventKey="Q4" title="4Q">
                         <ViewSave/>
                         <Label />
 				        <Row className="gap-1">

@@ -97,9 +97,9 @@ const MainPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
             </Carousel>
 			<Row>
 				<Col className="mx-3">
-					<h1>Basketball analyse tools</h1>
+					<h1>Basketball Analysis Tool</h1>
                     <p>
-                        Basketball analyse toolsは、バスケットボールの試合データを解析するためのツールです。
+                        Basketball Analysis Toolは、バスケットボールの試合データを解析するためのツールです。
                         試合データを入力することで、PPP、POSS、eFG%、TO%、FTR、ORB%、DRB%、TRB%を計算して表示します。
                         また、シュートポイントも記録することができるため、シュートポイントの分布を見ることができます。
                     </p>
@@ -111,8 +111,9 @@ const MainPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                     </p>
                     <h2>お問い合わせ</h2>
                     <p>
-                        バグやご要望等がございましたら以下までご連絡していただけますと幸いです。
-                        
+                        バグやご要望等がございましたら以下のDMまでご連絡していただけますと幸いです。
+                        <br/>
+                        <a href="https://twitter.com/mbo57" target="_blank">https://twitter.com/mbo57</a>
                     </p>
 				</Col>
 			</Row>
