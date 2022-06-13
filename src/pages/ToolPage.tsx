@@ -231,9 +231,9 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                 }
                 
                 if (key === "Q1" || key === "Q2") {
-                    team = "B"
-                } else if (key === "Q3" || key === "Q4") {
                     team = "A"
+                } else if (key === "Q3" || key === "Q4") {
+                    team = "B"
                 }
 
                 if (GoalorNot === "Goal") {
@@ -253,9 +253,9 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                 }
 
                 if (key === "Q1" || key === "Q2") {
-                    team = "A"
-                } else if (key === "Q3" || key === "Q4") {
                     team = "B"
+                } else if (key === "Q3" || key === "Q4") {
+                    team = "A"
                 }
 
                 if (GoalorNot === "Goal") {
@@ -682,10 +682,10 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
             return(
                 <Row>
                     <Col xs={6}>
-                        <h4>A : {list.game.team_A}</h4>
+                        <h4>B : {list.game.team_B}</h4>
                     </Col>
                     <Col xs={6}>
-                        <h4>B : {list.game.team_B}</h4>
+                        <h4>A : {list.game.team_A}</h4>
                     </Col>
                 </Row>
             )
@@ -693,10 +693,10 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
             return(
                 <Row>
                     <Col xs={6}>
-                        <h4>B : {list.game.team_B}</h4>
+                        <h4>A : {list.game.team_A}</h4>
                     </Col>
                     <Col xs={6}>
-                        <h4>A : {list.game.team_A}</h4>
+                        <h4>B : {list.game.team_B}</h4>
                     </Col>
                 </Row>
             )
