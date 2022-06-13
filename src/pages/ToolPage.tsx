@@ -40,6 +40,17 @@ const gbh   : number = 17.5
 const goal  : number = 5.625
 const circle: number = 6.429
 
+const Cross: React.VFC<{x: number, y: number, color: string}> = (pops) => {
+    const size = 0.8;
+    const width = 0.8;
+    return (
+        <>
+            <line x1={pops.x-size} y1={pops.y-size} x2={pops.x+size} y2={pops.y+size} stroke={pops.color} strokeWidth={width}/>
+            <line x1={pops.x+size} y1={pops.y-size} x2={pops.x-size} y2={pops.y+size} stroke={pops.color} strokeWidth={width}/>
+        </>
+    )
+}
+
 
 const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
 	const history = useHistory();
@@ -782,7 +793,11 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                         />
                         {Point.map((point, index) => {
                             if (point.team === "A") {
-                                return <circle cx={point.coor_x} cy={point.coor_y} r="1" fill={point.color} />
+                                if (point.color === "red"){
+                                    return <circle cx={point.coor_x} cy={point.coor_y} r="1" fill={point.color} />
+                                } else if (point.color === "blue"){
+                                    return <Cross x={point.coor_x} y={point.coor_y} color={point.color} />
+                                }
                             } else {
                                 return null;
                             }
@@ -857,7 +872,11 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                         />
                         {Point.map((point, index) => {
                             if (point.team === "B") {
-                                return <circle cx={point.coor_x} cy={point.coor_y} r="1" fill={point.color} />
+                                if (point.color === "red"){
+                                    return <circle cx={point.coor_x} cy={point.coor_y} r="1" fill={point.color} />
+                                } else if (point.color === "blue"){
+                                    return <Cross x={point.coor_x} y={point.coor_y} color={point.color} />
+                                }
                             } else {
                                 return null;
                             }
@@ -951,7 +970,11 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
 
 
                     {Point.map((point, index) => {
-                        return <circle cx={point.coor_x} cy={point.coor_y} r="1" fill={point.color} />
+                        if (point.color === "red"){
+                            return <circle cx={point.coor_x} cy={point.coor_y} r="1" fill={point.color} />
+                        } else if (point.color === "blue"){
+                            return <Cross x={point.coor_x} y={point.coor_y} color={point.color} />
+                        }
                     })}
                 </svg>
             )
@@ -1032,7 +1055,12 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                         strokeWidth="0.5"
                     />
                     {Point.map((point, index) => {
-                        return <circle cx={point.coor_x} cy={point.coor_y} r="1" fill={point.color} />
+                        if (point.color === "red"){
+                            return <circle cx={point.coor_x} cy={point.coor_y} r="1" fill={point.color} />
+                        } else if (point.color === "blue"){
+                            return <Cross x={point.coor_x} y={point.coor_y} color={point.color} />
+                        }
+
                     })}
                 </svg>
             )
