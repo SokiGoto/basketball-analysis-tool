@@ -13,7 +13,7 @@ import Tabs from "react-bootstrap/Tabs";
 import Button from "react-bootstrap/Button";
 import ButtonToolbar from "react-bootstrap/ButtonToolbar";
 
-import { updatePassword } from "firebase/auth";
+import { sendEmailVerification } from "firebase/auth";
 
 import { auth, db } from "../Firebase";
 import { setDoc, addDoc, doc, collection } from "firebase/firestore"
@@ -143,6 +143,8 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
     const [Edit, setEdit] = useState<boolean>(false);
 
     const [MvPage, setMvPage] = useState<boolean>(false);
+
+    const user = auth.currentUser;
 
     
     useEffect(() => {
@@ -293,6 +295,33 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
     }
 
 
+    const onSendEmailVerify: React.MouseEventHandler<HTMLButtonElement> = () => {
+        if (!user) {
+            return;
+        }
+        sendEmailVerification(user)
+            .then(() => {
+                alert("認証用メールを送信しました。")
+            })
+    }
+    if (user) {
+        if (user.emailVerified) {
+            return (
+		    	<Container className="mt-4 mb-5">
+		    		<Row>
+		    			<Col className="mx-3">
+                            メールアドレス認証を完了させてください。
+		    			</Col>
+                        <Col>
+                            <Button onClick={onSendEmailVerify}>
+                                認証用メールを送信する
+                            </Button>
+                        </Col>
+		    		</Row>
+		    	</Container>
+            );
+        }
+    }
 
     const handleClick = (event: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
         if (key !== "Q1" && key !== "Q2" && key !== "Q3" && key !== "Q4") {
