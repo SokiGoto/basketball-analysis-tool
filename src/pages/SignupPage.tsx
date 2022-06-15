@@ -7,7 +7,7 @@ import Button from "react-bootstrap/Button";
 import { Link, useHistory } from "react-router-dom";
 import { LoginInfo } from "../interfaces";
 import { auth } from "../Firebase";
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import "../App.css";
 
 
@@ -23,7 +23,11 @@ const SignupPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
 		createUserWithEmailAndPassword(auth, email, password)
 			.then(( userCredential) => {
 				var user = userCredential.user;
-				alert("アカウントを制作しました。")
+                sendEmailVerification(user)
+                    .then(() =>{
+				        alert("入力されたメールアドレス宛にメールアドレス認証用のメールを送信しました。\n" +
+                            "メールアドレスの認証を完了させてください。")
+                    })
 				history.push("/mypage");
 			})
 			.catch((error) => {

@@ -16,11 +16,14 @@ import Tabs from "react-bootstrap/Tabs";
 import ReactPaginate from 'react-paginate'
 
 import clone from "clone";
-import { LoginInfo, Game, InitialGame } from "../interfaces";
+
 import { auth, db } from "../Firebase";
 import { getDocs, getDoc, addDoc, setDoc, deleteDoc, collection, doc} from "firebase/firestore";
 import { DocumentReference } from "firebase/firestore";
-import { updatePassword } from "firebase/auth";
+import { updatePassword, sendEmailVerification, signInWithEmailAndPassword } from "firebase/auth";
+
+import { LoginInfo, Game, InitialGame } from "../interfaces";
+// import { makepdf } from "../module/makepdf";
 
 type List = {
     id: string,
@@ -34,6 +37,7 @@ type SortKey = {
 
 const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
 	const history = useHistory();
+    const [CurrentPass, setCurrentPass] = useState("");
 	const [newPassword, setNewPassword] = useState("");
 	const [newPasswordConfirmation, setNewPasswordConfirmation] = useState("");
 
@@ -47,6 +51,8 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
 
     const [Page, setPage] = useState(1);
     const [PageSize, setPageSize] = useState(5);
+
+    const user = auth.currentUser;
     
     useEffect(() => {
         (async () => {
@@ -72,7 +78,7 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
 	
 	const onLogoutClick: React.MouseEventHandler<HTMLButtonElement> = async () => {
 		await auth.signOut();
-		history.push("/");http://localhost:3000/
+		history.push("/");
 		alert("ログアウトしました");
 	};
 
@@ -88,6 +94,34 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
 		);
 	};
 
+    const onSendEmailVerify: React.MouseEventHandler<HTMLButtonElement> = () => {
+        if (!user) {
+            return;
+        }
+        sendEmailVerification(user)
+            .then(() => {
+                alert("認証用メールを送信しました。")
+            })
+    }
+    if (user) {
+        if (user.emailVerified) {
+            return (
+		    	<Container className="mt-4 mb-5">
+		    		<Row>
+		    			<Col className="mx-3">
+                            メールアドレス認証を完了させてください。
+		    			</Col>
+                        <Col>
+                            <Button onClick={onSendEmailVerify}>
+                                認証用メールを送信する
+                            </Button>
+                        </Col>
+		    		</Row>
+		    	</Container>
+            );
+        }
+    }
+
 
     const onNewGame = async() => {
         history.push("/tool");
@@ -97,24 +131,14 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
         // setList([...List, {id:newGameAdd.id, game:newGame} as List]);
     }
 
-    // const onChange = async (e:any) => {
-    //     const Id = e.target.id;
-    //     const newTest = {
-    //         id: "",
-    //         name: "",
-    //         key1: "aaaa",
-    //         key2: "bbbb",
-    //     }
-    //     await setDoc(doc(db, `users/${logininfo.userid}/gamse`, Id), { game: newTest }, { merge: true });
-    //     setList(List.map((x, index) => {
-    //         if(x.id === Id) {
-    //             return {id:Id, game:newTest} as List;
-    //         }
-    //         return x;
-    //     }));
+	const onView = (id: string, index: number) => {
+		history.push("/tool", List[index]);
+    }
+
+	// const onPDF = (id: string, index: number) => {
+    //     makepdf(List[index]);
     // }
-
-
+		
 	const onDelete = (id: string, index: number) => {
         setDeleteGameId(id);
         setDeleteGameIndex(index);
@@ -131,28 +155,36 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
         console.log("deleted", DeleteGameId, DeleteGameIndex);
     }
 
+
 	const handleFormSubmission: React.FormEventHandler<HTMLFormElement> = (e) => {
 		e.preventDefault();
-		const user = auth.currentUser;
 	
-			if (!user) {
+			if (!user || user.email === null) {
 				return;
 			}
 
 			if (newPassword !== newPasswordConfirmation) {
-				alert("パスワードが一致しません。");
+				alert("新規パスワードが一致しません。");
 				return;
 			}
+
+            signInWithEmailAndPassword(auth, user.email, CurrentPass)
+                .then(() => {
+			        updatePassword(user, newPassword)
+				        .then(() => {
+				        	alert("パスワードを更新しました。");
+				        	setNewPassword("");
+				        	setNewPasswordConfirmation("");
+                            setCurrentPass("");
+				        })
+				        .catch((error) => {
+				        	alert(error.code);
+				        });
+                })
+                .catch((error) => {
+                    alert("現在のパスワードが違います。")
+                })
 	
-			updatePassword(user, newPassword)
-				.then(() => {
-					alert("パスワードを更新しました。");
-					setNewPassword("");
-					setNewPasswordConfirmation("");
-				})
-				.catch((error) => {
-					alert(error.code);
-				});
 	};
     
     const handleClose = () => setShow(false);
@@ -172,8 +204,6 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                         日付 : {List[DeleteGameIndex].game.date}<br/>
                         チームA : {List[DeleteGameIndex].game.team_A}<br/>
                         チームB : {List[DeleteGameIndex].game.team_B}<br/>
-                        {/*
-                        */}
                         の試合データを削除します。<br/>
                         データは完全に消去されます。<br/>
                         消去してもよろしいですか？
@@ -276,9 +306,6 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
         setPage(1);
     }
 
-	const onView = (id: string, index: number) => {
-		history.push("/tool", List[index]);
-    }
 
     const onPageChange = (e: any) => {
         const selected = e.selected + 1;
@@ -310,11 +337,6 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                         <Button onClick={onNewGame}>
                                             NewGame
                                         </Button>
-                                        {/*
-                                        <Button onClick={onTest}>
-                                            test
-                                        </Button>
-                                        */}
                                     </Col>
                                     <Col xs={7}>
                                     </Col>
@@ -355,6 +377,7 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                                     {SortKey.key === "score_B" ? (SortKey.order === 1 ? "▲" : "▼") : ""}
                                                 </th>
                                                 <th>View</th>
+                                                <th>PDF</th>
                                                 <th>Delete</th>
                                             </tr>
                                         </thead>
@@ -374,6 +397,13 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                                                                 View
                                                             </Button>
                                                         </td>
+                                                        {/*
+                                                        <td>
+                                                            <Button id={list.id} onClick={() => onPDF(list.id,index)}>
+                                                                PDF
+                                                            </Button>
+                                                        </td>
+                                                        */}
                                                         <td>
                                                             <Button id={list.id} onClick={() => onDelete(list.id,index)}>
                                                                 Delete
@@ -429,6 +459,14 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                         <Tab eventKey="password" title="パスワード変更">
                             <div className="mx-3 my-3">
                                 <Form onSubmit={handleFormSubmission}>
+                                    <Form.Group>
+                                        <Form.Label>現在のパスワード</Form.Label>
+                                        <Form.Control
+                                            type="password"
+                                            value={CurrentPass}
+                                            onChange={(e) => setCurrentPass(e.target.value)}
+                                    />
+                                    </Form.Group>
                                     <Form.Group>
                                         <Form.Label>新しいパスワード</Form.Label>
                                         <Form.Control

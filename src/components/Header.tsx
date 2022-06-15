@@ -3,7 +3,7 @@ import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import { Link } from "react-router-dom";
-import logo from "../images/logo.webp";
+import logo from "../images/logo.png";
 import { LoginInfo } from "../interfaces";
 
 interface Props {
@@ -33,8 +33,8 @@ const Header: React.VFC<Props> = ({ loginInfo }) => {
 		      <img
 		        alt=""
 		        src={logo}
-		        width="340"
-		        height="50"
+		        width="384"
+		        height="73.5"
 		        className="d-inline-block align-top"
 		      />
 		    </Link>

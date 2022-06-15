@@ -11,8 +11,8 @@ import Button from "react-bootstrap/Button";
 
 import TextPage from "./TextPage";
 
-import sample from "../images/Coat.png";
-import Table from "../images/Table.png";
+import Sample1 from "../images/sample1.png";
+import Sample2 from "../images/sample2.png";
 // import Table1 from "../images/Table1.png";
 // import Table2 from "../images/Table2.png";
 
@@ -55,8 +55,8 @@ const MainPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
             <Carousel>
                 <Carousel.Item>
                     <img
-                        className="d-block w-100"
-                        src={sample}
+                        className="d-block h-100"
+                        src={Sample1}
                         alt="First slide"
                     />
                     <Carousel.Caption>
@@ -68,8 +68,8 @@ const MainPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                 </Carousel.Item>
                 <Carousel.Item>
                     <img
-                        className="d-block w-100"
-                        src={Table}
+                        className="d-block h-100"
+                        src={Sample2}
                         alt="Second slide"
                     />
                     <Carousel.Caption>
