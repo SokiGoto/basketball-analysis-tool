@@ -305,7 +305,7 @@ const ToolPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
             })
     }
     if (user) {
-        if (user.emailVerified) {
+        if (!user.emailVerified) {
             return (
 		    	<Container className="mt-4 mb-5">
 		    		<Row>

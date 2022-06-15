@@ -103,25 +103,6 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                 alert("認証用メールを送信しました。")
             })
     }
-    if (user) {
-        if (user.emailVerified) {
-            return (
-		    	<Container className="mt-4 mb-5">
-		    		<Row>
-		    			<Col className="mx-3">
-                            メールアドレス認証を完了させてください。
-		    			</Col>
-                        <Col>
-                            <Button onClick={onSendEmailVerify}>
-                                認証用メールを送信する
-                            </Button>
-                        </Col>
-		    		</Row>
-		    	</Container>
-            );
-        }
-    }
-
 
     const onNewGame = async() => {
         history.push("/tool");
@@ -319,6 +300,150 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
         setPageSize(e);
     }
 
+    const GamesTab = () => {
+        if (user) {
+            if (!user.emailVerified) {
+                return (
+	    	    	<Container className="mt-4 mb-5">
+	    	    		<Row>
+	    	    			<Col className="mx-3">
+                                メールアドレス認証を完了させてください。
+	    	    			</Col>
+                            <Col>
+                                <Button onClick={onSendEmailVerify}>
+                                    認証用メールを送信する
+                                </Button>
+                            </Col>
+	    	    		</Row>
+	    	    	</Container>
+                );
+            }
+        }
+        return(
+            <>
+                <div className="mx-3 my-3">
+                    <Row className="gap-2">
+                        <Col xs={2}>
+                            <Button onClick={onNewGame}>
+                                NewGame
+                            </Button>
+                        </Col>
+                        <Col xs={7}>
+                        </Col>
+                        <Col xs={1}>
+                            <Dropdown onSelect={onPageSize}>
+                                <Dropdown.Toggle variant="" id="dropdown-basic">
+                                    表示件数
+                                </Dropdown.Toggle>
+                                <Dropdown.Menu>
+                                    <Dropdown.Item eventKey="5">5</Dropdown.Item>
+                                    <Dropdown.Item eventKey="10">10</Dropdown.Item>
+                                    <Dropdown.Item eventKey="20">20</Dropdown.Item>
+                                </Dropdown.Menu>
+                            </Dropdown>
+                        </Col>
+                        <Table striped bordered>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th onClick={() => onSort("date")}>
+                                        日付
+                                        {SortKey.key === "date" ? (SortKey.order === 1 ? "▲" : "▼") : ""}
+                                    </th>
+                                    <th onClick={() => onSort("team_A")}>
+                                        チームA
+                                        {SortKey.key === "team_A" ? (SortKey.order === 1 ? "▲" : "▼") : ""}
+                                    </th>
+                                    <th onClick={() => onSort("team_B")}>
+                                        チームB
+                                        {SortKey.key === "team_B" ? (SortKey.order === 1 ? "▲" : "▼") : ""}
+                                    </th>
+                                    <th onClick={() => onSort("score_A")}>
+                                        スコアA
+                                        {SortKey.key === "score_A" ? (SortKey.order === 1 ? "▲" : "▼") : ""}
+                                    </th>
+                                    <th onClick={() => onSort("score_B")}>
+                                        スコアB
+                                        {SortKey.key === "score_B" ? (SortKey.order === 1 ? "▲" : "▼") : ""}
+                                    </th>
+                                    <th>View</th>
+                                    {/*
+                                    <th>PDF</th>
+                                    */}
+                                    <th>Delete</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {List.map((list, index) => {
+                                    if (index < Page * PageSize && index >= (Page - 1) * PageSize) {
+                                    return (
+                                        <tr>
+                                            <td>{index+1}</td>
+                                            <td>{list.game.date}</td>
+                                            <td>{list.game.team_A}</td>
+                                            <td>{list.game.team_B}</td>
+                                            <td>{list.game.score_A}</td>
+                                            <td>{list.game.score_B}</td>
+                                            <td>
+                                                <Button id={list.id} onClick={() => onView(list.id,index)}>
+                                                    View
+                                                </Button>
+                                            </td>
+                                            {/*
+                                            <td>
+                                                <Button id={list.id} onClick={() => onPDF(list.id,index)}>
+                                                    PDF
+                                                </Button>
+                                            </td>
+                                            */}
+                                            <td>
+                                                <Button id={list.id} onClick={() => onDelete(list.id,index)}>
+                                                    Delete
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    );
+                                    } else {
+                                        return null;
+                                    }
+                                })}
+                            </tbody>
+                        </Table>
+                        <ReactPaginate
+                            forcePage={Page-1}
+                            pageCount={Math.ceil(List.length/PageSize)}
+                            onPageChange={onPageChange}
+                            marginPagesDisplayed={4} // 先頭と末尾に表示するページ数
+                            pageRangeDisplayed={2} // 現在のページの前後をいくつ表示させるか
+
+                            containerClassName="pagination justify-center" // ul(pagination本体)
+                            pageClassName="page-item" // li
+                            pageLinkClassName="page-link rounded-full" // a
+                            activeClassName="active" // active.li
+                            activeLinkClassName="active" // active.li < a
+
+                            // 戻る・進む関連
+                            previousClassName="page-item" // li
+                            nextClassName="page-item" // li
+                            previousLabel={'<'} // a
+                            previousLinkClassName="previous-link"
+                            nextLabel={'>'} // a
+                            nextLinkClassName="next-link"
+                            
+                            // 先頭 or 末尾に行ったときにそれ以上戻れ(進め)なくする
+                            disabledClassName="disabled-button d-none"
+                            
+                            // 中間ページの省略表記関連
+                            breakLabel="..."
+                            breakClassName="page-item"
+                            breakLinkClassName="page-link"
+                        />
+                    </Row>
+                </div>
+            </>
+        )
+    }
+
 	return (
         <Container className="mt-4 mb-5">
             <Row>
@@ -331,123 +456,7 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                         variant="tabs"
                     >
                         <Tab eventKey="games" title="試合">
-                            <div className="mx-3 my-3">
-                                <Row className="gap-2">
-                                    <Col xs={2}>
-                                        <Button onClick={onNewGame}>
-                                            NewGame
-                                        </Button>
-                                    </Col>
-                                    <Col xs={7}>
-                                    </Col>
-                                    <Col xs={1}>
-                                        <Dropdown onSelect={onPageSize}>
-                                            <Dropdown.Toggle variant="" id="dropdown-basic">
-                                                表示件数
-                                            </Dropdown.Toggle>
-                                            <Dropdown.Menu>
-                                                <Dropdown.Item eventKey="5">5</Dropdown.Item>
-                                                <Dropdown.Item eventKey="10">10</Dropdown.Item>
-                                                <Dropdown.Item eventKey="20">20</Dropdown.Item>
-                                            </Dropdown.Menu>
-                                        </Dropdown>
-                                    </Col>
-                                    <Table striped bordered>
-                                        <thead>
-                                            <tr>
-                                                <th>ID</th>
-                                                <th onClick={() => onSort("date")}>
-                                                    日付
-                                                    {SortKey.key === "date" ? (SortKey.order === 1 ? "▲" : "▼") : ""}
-                                                </th>
-                                                <th onClick={() => onSort("team_A")}>
-                                                    チームA
-                                                    {SortKey.key === "team_A" ? (SortKey.order === 1 ? "▲" : "▼") : ""}
-                                                </th>
-                                                <th onClick={() => onSort("team_B")}>
-                                                    チームB
-                                                    {SortKey.key === "team_B" ? (SortKey.order === 1 ? "▲" : "▼") : ""}
-                                                </th>
-                                                <th onClick={() => onSort("score_A")}>
-                                                    スコアA
-                                                    {SortKey.key === "score_A" ? (SortKey.order === 1 ? "▲" : "▼") : ""}
-                                                </th>
-                                                <th onClick={() => onSort("score_B")}>
-                                                    スコアB
-                                                    {SortKey.key === "score_B" ? (SortKey.order === 1 ? "▲" : "▼") : ""}
-                                                </th>
-                                                <th>View</th>
-                                                <th>PDF</th>
-                                                <th>Delete</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {List.map((list, index) => {
-                                                if (index < Page * PageSize && index >= (Page - 1) * PageSize) {
-                                                return (
-                                                    <tr>
-                                                        <td>{index+1}</td>
-                                                        <td>{list.game.date}</td>
-                                                        <td>{list.game.team_A}</td>
-                                                        <td>{list.game.team_B}</td>
-                                                        <td>{list.game.score_A}</td>
-                                                        <td>{list.game.score_B}</td>
-                                                        <td>
-                                                            <Button id={list.id} onClick={() => onView(list.id,index)}>
-                                                                View
-                                                            </Button>
-                                                        </td>
-                                                        {/*
-                                                        <td>
-                                                            <Button id={list.id} onClick={() => onPDF(list.id,index)}>
-                                                                PDF
-                                                            </Button>
-                                                        </td>
-                                                        */}
-                                                        <td>
-                                                            <Button id={list.id} onClick={() => onDelete(list.id,index)}>
-                                                                Delete
-                                                            </Button>
-                                                        </td>
-                                                    </tr>
-                                                );
-                                                } else {
-                                                    return null;
-                                                }
-                                            })}
-                                        </tbody>
-                                    </Table>
-                                    <ReactPaginate
-                                        forcePage={Page-1}
-                                        pageCount={Math.ceil(List.length/PageSize)}
-                                        onPageChange={onPageChange}
-                                        marginPagesDisplayed={4} // 先頭と末尾に表示するページ数
-                                        pageRangeDisplayed={2} // 現在のページの前後をいくつ表示させるか
-
-                                        containerClassName="pagination justify-center" // ul(pagination本体)
-                                        pageClassName="page-item" // li
-                                        pageLinkClassName="page-link rounded-full" // a
-                                        activeClassName="active" // active.li
-                                        activeLinkClassName="active" // active.li < a
-
-                                        // 戻る・進む関連
-                                        previousClassName="page-item" // li
-                                        nextClassName="page-item" // li
-                                        previousLabel={'<'} // a
-                                        previousLinkClassName="previous-link"
-                                        nextLabel={'>'} // a
-                                        nextLinkClassName="next-link"
-                                        
-                                        // 先頭 or 末尾に行ったときにそれ以上戻れ(進め)なくする
-                                        disabledClassName="disabled-button d-none"
-                                        
-                                        // 中間ページの省略表記関連
-                                        breakLabel="..."
-                                        breakClassName="page-item"
-                                        breakLinkClassName="page-link"
-                                    />
-                                </Row>
-                            </div>
+                            <GamesTab/>
                         </Tab>
                         {/*
 		                <Tab eventKey="home" title="ユーザー情報">
