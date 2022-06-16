@@ -20,7 +20,7 @@ import clone from "clone";
 import { auth, db } from "../Firebase";
 import { getDocs, getDoc, addDoc, setDoc, deleteDoc, collection, doc} from "firebase/firestore";
 import { DocumentReference } from "firebase/firestore";
-import { updatePassword, sendEmailVerification, signInWithEmailAndPassword } from "firebase/auth";
+import { updatePassword, sendEmailVerification, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
 
 import { LoginInfo, Game, InitialGame } from "../interfaces";
 // import { makepdf } from "../module/makepdf";
@@ -137,7 +137,7 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
     }
 
 
-	const handleFormSubmission: React.FormEventHandler<HTMLFormElement> = (e) => {
+	const handleFormSubmission: React.FormEventHandler<HTMLFormElement> = async(e) => {
 		e.preventDefault();
 	
 			if (!user || user.email === null) {
@@ -148,10 +148,14 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
 				alert("新規パスワードが一致しません。");
 				return;
 			}
+            const credential = await EmailAuthProvider.credential(
+                user.email, 
+                CurrentPass
+            )
 
-            signInWithEmailAndPassword(auth, user.email, CurrentPass)
-                .then(() => {
-			        updatePassword(user, newPassword)
+            await reauthenticateWithCredential(user, credential)
+                .then(async() => {
+			        await updatePassword(user, newPassword)
 				        .then(() => {
 				        	alert("パスワードを更新しました。");
 				        	setNewPassword("");
@@ -159,7 +163,8 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                             setCurrentPass("");
 				        })
 				        .catch((error) => {
-				        	alert(error.code);
+				        	alert("もう一度試してください。\n" + 
+                                "このエラーが二度出た場合は、管理者に連絡してください。");
 				        });
                 })
                 .catch((error) => {
