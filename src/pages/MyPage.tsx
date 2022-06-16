@@ -168,6 +168,7 @@ const MyPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
 				        });
                 })
                 .catch((error) => {
+                    console.log(error)
                     alert("現在のパスワードが違います。")
                 })
 	

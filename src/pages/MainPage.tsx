@@ -55,7 +55,7 @@ const MainPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
             <Carousel>
                 <Carousel.Item>
                     <img
-                        className="d-block h-100"
+                        className="d-block w-100"
                         src={Sample1}
                         alt="First slide"
                     />
@@ -68,7 +68,7 @@ const MainPage:React.VFC<{ logininfo: LoginInfo }> = ({ logininfo }) => {
                 </Carousel.Item>
                 <Carousel.Item>
                     <img
-                        className="d-block h-100"
+                        className="d-block w-100"
                         src={Sample2}
                         alt="Second slide"
                     />
